@@ -300,12 +300,48 @@ function setupCartEvents() {
 
     document.getElementById("backToStep2").onclick = () => switchStep(2);
     
-    document.getElementById("finishOrderBtn").onclick = () => {
-        // Финал
-        cart = [];
-        updateCartUI();
-        document.getElementById("orderForm").reset();
-        switchStep(4);
+   document.getElementById("finishOrderBtn").onclick = () => {
+        const orderText = document.getElementById("orderTextResult").value;
+        
+        const token = '8594646737:AAE14lnAkf701NTmZX5nRyj2xFxsNnnFev4';
+        const chatId = '7209893790'; 
+        const url = `https://telegram.org{token}/sendMessage`;
+
+        const finishBtn = document.getElementById("finishOrderBtn");
+        finishBtn.disabled = true;
+        finishBtn.textContent = "Отправка...";
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                chat_id: chatId,
+                text: orderText
+            })
+        })
+        .then(response => {
+            if (response.ok) {
+                cart = [];
+                updateCartUI();
+                document.getElementById("orderForm").reset();
+                switchStep(4);
+            } else {
+                alert('Ошибка сервера Telegram: ' + response.status);
+                switchStep(4); // Переключаем на шаг успеха, чтобы не блокировать пользователя
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            alert('Не удалось связаться с Telegram.');
+            switchStep(4);
+        })
+        .finally(() => {
+            finishBtn.disabled = false;
+            finishBtn.textContent = "Завершить заказ";
+        });
+    };
     };
 
     // Копирование в буфер обмена (как в RuRuBurger)
