@@ -1,157 +1,262 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Строй Дом — Строительные материалы</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+// 1. База данных товаров (Категории строго совпадают с HTML: mixes, bricks, roof, tools)
+const PRODUCTS = [
+    { id: 1, title: 'Сплит-система Centek CT-65A09', price: 19990, category: 'mixes', img: 'https://placehold.co' },
+    { id: 2, title: 'Инверторный кондиционер Haier', price: 32500, category: 'mixes', img: 'https://placehold.co' },
+    { id: 3, title: 'Морозильный ларь Бирюса 100L', price: 14200, category: 'bricks', img: 'https://placehold.co' },
+    { id: 4, title: 'Морозильная камера Atlant', price: 24800, category: 'bricks', img: 'https://placehold.co' },
+    { id: 5, title: 'Шланг поливочный армированный 20м', price: 1250, category: 'roof', img: 'https://placehold.co' },
+    { id: 6, title: 'Газонокосилка электрическая 1300W', price: 8900, category: 'roof', img: 'https://placehold.co' },
+    { id: 7, title: 'Набор инструментов SATA 86 пред.', price: 5400, category: 'tools', img: 'https://placehold.co' },
+    { id: 8, title: 'Перфоратор Makita HR2470', price: 11900, category: 'tools', img: 'https://placehold.co' }
+];
 
-    <!-- Шапка сайта -->
-    <header class="header">
-        <div class="container header-flex">
-            <div class="logo">🏗️ Строй Клик</div>
-            <div class="header-info">
-                <span>📍 ул.Мира 47</span>
-                <span>⏰ Ежедневно 08:00–19:00</span>
-            </div>
-            <button class="cart-btn" id="openCartBtn">
-                🛒 Корзина <span id="cartBadge">0</span>
-            </button>
-        </div>
-    </header>
+// 2. Состояние приложения (Корзина)
+let cart = [];
 
-    <!-- Промо-блок -->
-    <section class="hero">
-        <div class="container">
-            <h1>Строй Дом</h1>
-            <p class="hero-sub">Оптово-Строительный магазин с самыми выгодными ценами на рынке✅</p>
-            <a href="#catalog-section" class="btn-primary">Смотреть каталог ↓</a>
-            <div class="stats">
-                <div><strong>500+</strong> <span>Позиций</span></div>
-                <div><strong>08–19:00</strong> <span>Часы работы</span></div>
-                <div><strong></strong> <span>Доступные цены всегда и во всем</span></div>
-            </div>
-        </div>
-    </section>
+// 3. DOM Элементы
+const productsContainer = document.getElementById('productsContainer');
+const categoryFilters = document.getElementById('categoryFilters');
+const cartBadge = document.getElementById('cartBadge');
+const cartModal = document.getElementById('cartModal');
+const openCartBtn = document.getElementById('openCartBtn');
+const closeCartBtn = document.getElementById('closeCartBtn');
 
-    <!-- Каталог товаров -->
-    <main class="container" id="catalog-section">
-        <h2 class="section-title">— Наш ассортимент —</h2>
+// Элементы шагов оформления
+const steps = {
+    1: document.getElementById('step-1'),
+    2: document.getElementById('step-2'),
+    3: document.getElementById('step-3'),
+    4: document.getElementById('step-4')
+};
+
+// Списки и цены
+const cartItemsList = document.getElementById('cartItemsList');
+const cartTotalPrice = document.getElementById('cartTotalPrice');
+const totalSummaries = document.querySelectorAll('.total-summary');
+
+// Форма и доставка
+const orderForm = document.getElementById('orderForm');
+const deliveryOptions = document.getElementsByName('delivery');
+const deliveryAddressBlock = document.getElementById('deliveryAddressBlock');
+const orderTextResult = document.getElementById('orderTextResult');
+
+// 4. Инициализация и рендер каталога
+function initCatalog() {
+    renderProducts('all');
+    setupFilters();
+}
+
+function renderProducts(categoryFilter) {
+    productsContainer.innerHTML = '';
+    
+    // Фильтруем массив товаров
+    const filtered = categoryFilter === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.category === categoryFilter);
+    
+    if (filtered.length === 0) {
+        productsContainer.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#777;">Товары в этой категории временно отсутствуют</p>';
+        return;
+    }
+
+    // Выводим карточки
+    filtered.forEach(product => {
+        const card = document.createElement('div');
+        card.className = 'product-card'; 
+        card.innerHTML = `
+            <img src="${product.img}" alt="${product.title}">
+            <h3>${product.title}</h3>
+            <div class="price">${product.price.toLocaleString()} ₽</div>
+            <button class="btn-primary buy-btn" data-id="${product.id}">В корзину</button>
+        `;
+        productsContainer.appendChild(card);
+    });
+}
+
+function setupFilters() {
+    categoryFilters.addEventListener('click', (e) => {
+        const btn = e.target.closest('.cat-btn');
+        if (!btn) return;
         
-        <!-- Фильтр по категориям (Аналог вкладок меню RuRuBurger) -->
-        <div class="categories" id="categoryFilters">
-            <button class="cat-btn active" data-category="all">🧱 Все товары</button>
-            <button class="cat-btn" data-category="mixes">Сплит-Системы </button>
-            <button class="cat-btn" data-category="bricks">🧱 Морозильные камеры</button>
-            <button class="cat-btn" data-category="roof">🏠 Сад и огород</button>
-            <button class="cat-btn" data-category="tools">🛠️ Инструменты</button>
-        </div>
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderProducts(btn.dataset.category);
+    });
+}
 
-        <div class="products-grid" id="productsContainer">
-            <!-- Сюда JS выведет карточки товаров -->
-        </div>
-    </main>
+// 5. Логика работы корзины
+productsContainer.addEventListener('click', (e) => {
+    if (!e.target.classList.contains('buy-btn')) return;
+    const id = parseInt(e.target.dataset.id);
+    addToCart(id);
+    
+    // Визуальный эффект нажатия кнопки
+    const originalText = e.target.textContent;
+    e.target.textContent = '✓ Добавлено';
+    e.target.style.background = '#2ecc71';
+    setTimeout(() => {
+        e.target.textContent = originalText;
+        e.target.style.background = '';
+    }, 800);
+});
 
-    <!-- Поддержка -->
-    <section class="support">
-        <div class="container">
-            <h2>🎧 Поддержка</h2>
-            <p>Нужна помощь в расчете материалов или возникли вопросы по доставке?</p>
-            <p class="phone">📞 8 800 33 55 43</p>
-            <div class="social-links">
-                <a href="#" class="soc-btn tg">Telegram</a>
-                <a href="#" class="soc-btn wa">WhatsApp</a>
+function addToCart(id) {
+    const item = cart.find(p => p.id === id);
+    if (item) {
+        item.count++;
+    } else {
+        const product = PRODUCTS.find(p => p.id === id);
+        cart.push({ ...product, count: 1 });
+    }
+    updateCartUI();
+}
+
+function updateCartUI() {
+    const totalCount = cart.reduce((sum, item) => sum + item.count, 0);
+    cartBadge.textContent = totalCount;
+
+    cartItemsList.innerHTML = '';
+    let totalSum = 0;
+
+    cart.forEach(item => {
+        const itemSum = item.price * item.count;
+        totalSum += itemSum;
+
+        const row = document.createElement('div');
+        row.className = 'cart-item';
+        row.innerHTML = `
+            <div>
+                <div class="cart-item-title">${item.title}</div>
+                <small>${item.price.toLocaleString()} ₽/шт</small>
             </div>
-        </div>
-    </section>
-
-    <!-- Подвал -->
-    <footer class="footer">
-        <p>© 2026 Строй Дом — Строительный магазин</p>
-    </footer>
-
-    <!-- ================= ОКНО КОРЗИНЫ И ОФОРМЛЕНИЯ (Многошаговое) ================= -->
-    <div class="modal-overlay" id="cartModal">
-        <div class="modal-content">
-            <button class="close-modal" id="closeCartBtn">✕</button>
-
-            <!-- ШАГ 1: Просмотр корзины -->
-            <div class="modal-step id-active" id="step-1">
-                <h2>Ваша корзина</h2>
-                <div class="cart-items-list" id="cartItemsList">
-                    <!-- Элементы корзины -->
-                </div>
-                <div class="cart-total-box">
-                    Итого: <span id="cartTotalPrice">0</span> ₽
-                </div>
-                <button class="btn-block" id="toStep2Btn">⚡ Оформить заказ</button>
+            <div class="cart-item-controls">
+                <button class="count-minus" data-id="${item.id}">-</button>
+                <span>${item.count}</span>
+                <button class="count-plus" data-id="${item.id}">+</button>
+                <b class="item-sum">${itemSum.toLocaleString()} ₽</b>
             </div>
+        `;
+        cartItemsList.appendChild(row);
+    });
 
-            <!-- ШАГ 2: Ввод данных (Аналог RuRuBurger) -->
-            <div class="modal-step" id="step-2">
-                <h2>📋 Оформление заказа</h2>
-                <p class="step-sub">Заполните данные и выберите способ получения</p>
-                
-                <form id="orderForm" onsubmit="return false;">
-                    <label>Ваше имя</label>
-                    <input type="text" id="userName" required placeholder="Иван Иванов">
+    if (cart.length === 0) {
+        cartItemsList.innerHTML = '<p style="color:#777; text-align:center; padding: 20px 0;">Ваша корзина пуста</p>';
+    }
 
-                    <label>Телефон</label>
-                    <input type="tel" id="userPhone" required placeholder="+7 (999) 000-00-00">
+    cartTotalPrice.textContent = totalSum.toLocaleString();
+    totalSummaries.forEach(el => el.textContent = totalSum.toLocaleString());
+}
 
-                    <label>Способ получения</label>
-                    <div class="delivery-options">
-                        <label><input type="radio" name="delivery" value="Самовывоз" checked> 🏃 Самовывоз</label>
-                        <label><input type="radio" name="delivery" value="Доставка"> 🚗 Доставка</label>
-                    </div>
+// Изменение количества внутри модального окна корзины
+cartItemsList.addEventListener('click', (e) => {
+    const id = parseInt(e.target.dataset.id);
+    if (!id) return;
 
-                    <div id="deliveryAddressBlock" style="display: none;">
-                        <label>Адрес доставки</label>
-                        <input type="text" id="userAddress" placeholder="Город, улица, дом">
-                    </div>
+    const item = cart.find(p => p.id === id);
+    if (!item) return;
 
-                    <div class="cart-total-box">
-                        Итого: <span class="total-summary">0</span> ₽
-                    </div>
+    if (e.target.classList.contains('count-plus')) {
+        item.count++;
+    } else if (e.target.classList.contains('count-minus')) {
+        item.count--;
+        if (item.count <= 0) {
+            cart = cart.filter(p => p.id !== id);
+        }
+    }
+    updateCartUI();
+});
 
-                    <div class="step-buttons">
-                        <button type="button" class="btn-secondary" id="backToStep1">Назад</button>
-                        <button type="button" class="btn-primary" id="toStep3Btn">Далее</button>
-                    </div>
-                </form>
-            </div>
+// 6. Управление шагами оформления заказа
+function switchStep(stepNumber) {
+    Object.values(steps).forEach(step => step.classList.remove('id-active'));
+    steps[stepNumber].classList.add('id-active');
+}
 
-            <!-- ШАГ 3: Выбор отправки -->
-            <div class="modal-step" id="step-3">
-                <h2>📱 Отправить заказ</h2>
-                <p class="step-sub">Скопируйте текст заказа или выберите отправку</p>
-                
-                <textarea id="orderTextResult" readonly rows="6" class="order-textarea"></textarea>
-                
-                <button class="btn-block btn-copy" id="copyOrderBtn">📋 Скопировать заказ</button>
-                <div id="copySuccess" class="copy-success-msg">✓ Скопировано в буфер обмена!</div>
+openCartBtn.addEventListener('click', () => {
+    cartModal.style.display = 'flex';
+    switchStep(1);
+    updateCartUI();
+});
 
-                <div class="step-buttons" style="margin-top: 20px;">
-                    <button type="button" class="btn-secondary" id="backToStep2">Назад</button>
-                    <button type="button" class="btn-primary" id="finishOrderBtn">✅ Подтвердить</button>
-                </div>
-            </div>
+closeCartBtn.addEventListener('click', () => cartModal.style.display = 'none');
 
-            <!-- ШАГ 4: Успешное завершение -->
-            <div class="modal-step" id="step-4">
-                <div class="success-screen">
-                    <span class="success-icon">🎉</span>
-                    <h2>Заказ принят!</h2>
-                    <p>Мы получили вашу заявку и уже проверяем наличие товаров на складе. Менеджер свяжется с вами в ближайшее время!</p>
-                    <button class="btn-primary" id="closeSuccessBtn">Отлично!</button>
-                </div>
-            </div>
+// Переключение блока адреса при выборе доставки
+deliveryOptions.forEach(opt => {
+    opt.addEventListener('change', (e) => {
+        deliveryAddressBlock.style.display = e.target.value === 'Доставка' ? 'block' : 'none';
+        document.getElementById('userAddress').required = e.target.value === 'Доставка';
+    });
+});
 
-        </div>
-    </div>
+// Кнопки навигации по шагам
+document.getElementById('toStep2Btn').addEventListener('click', () => {
+    if (cart.length === 0) return alert('Добавьте хотя бы один товар в корзину!');
+    switchStep(2);
+});
 
-    <script src="app.js"></script>
-</body>
-</html>
+document.getElementById('backToStep1').addEventListener('click', () => switchStep(1));
+
+document.getElementById('toStep3Btn').addEventListener('click', () => {
+    const name = document.getElementById('userName').value.trim();
+    const phone = document.getElementById('userPhone').value.trim();
+    const deliveryType = document.querySelector('input[name="delivery"]:checked').value;
+    const address = document.getElementById('userAddress').value.trim();
+
+    if (!name || !phone || (deliveryType === 'Доставка' && !address)) {
+        alert('Пожалуйста, заполните все обязательные поля формы!');
+        return;
+    }
+
+    generateOrderText(name, phone, deliveryType, address);
+    switchStep(3);
+});
+
+document.getElementById('backToStep2').addEventListener('click', () => switchStep(2));
+
+// 7. Формирование финального текста
+function generateOrderText(name, phone, deliveryType, address) {
+    let text = `📦 НОВЫЙ ЗАКАЗ (Строй Дом)\n`;
+    text += `👤 Покупатель: ${name}\n`;
+    text += `📞 Телефон: ${phone}\n`;
+    text += `🚚 Получение: ${deliveryType}\n`;
+    if (deliveryType === 'Доставка') {
+        text += `📍 Адрес: ${address}\n`;
+    }
+    text += `\n🛒 Состав заказа:\n`;
+
+    let total = 0;
+    cart.forEach((item, index) => {
+        const sum = item.price * item.count;
+        total += sum;
+        text += `${index + 1}. ${item.title} x ${item.count} шт. (${sum.toLocaleString()} ₽)\n`;
+    });
+
+    text += `\n💰 ИТОГО К ОПЛАТЕ: ${total.toLocaleString()} ₽`;
+    orderTextResult.value = text;
+}
+
+// Кнопка копирования в буфер
+document.getElementById('copyOrderBtn').addEventListener('click', () => {
+    orderTextResult.select();
+    navigator.clipboard.writeText(orderTextResult.value)
+        .then(() => {
+            const msg = document.getElementById('copySuccess');
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', 3000);
+        })
+        .catch(() => alert('Ошибка копирования. Выделите текст в окне и скопируйте вручную.'));
+});
+
+// Финальное подтверждение заказа
+document.getElementById('finishOrderBtn').addEventListener('click', () => {
+    switchStep(4);
+    cart = []; 
+    updateCartUI();
+    orderForm.reset();
+    deliveryAddressBlock.style.display = 'none';
+});
+
+document.getElementById('closeSuccessBtn').addEventListener('click', () => {
+    cartModal.style.display = 'none';
+});
+
+// Скрипт готов к работе
+initCatalog();
