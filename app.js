@@ -1,16 +1,16 @@
 // 1. Каталог товаров
 const PRODUCTS = [
-    { id: 1, title: 'Сплит-система Centek CT-65A09', price: 19990, category: 'mixes', img: 'https://placehold.co' },
-    { id: 2, title: 'Инверторный кондиционер Haier', price: 32500, category: 'mixes', img: 'https://placehold.co' },
-    { id: 3, title: 'Морозильный ларь Бирюса 100L', price: 14200, category: 'bricks', img: 'https://placehold.co' },
-    { id: 4, title: 'Морозильная камера Atlant', price: 24800, category: 'bricks', img: 'https://placehold.co' },
-    { id: 5, title: 'Шланг поливочный армированный 20м', price: 1250, category: 'roof', img: 'https://placehold.co' },
-    { id: 6, title: 'Газонокосилка электрическая 1300W', price: 8900, category: 'roof', img: 'https://placehold.co' },
-    { id: 7, title: 'Набор инструментов SATA 86 пред.', price: 5400, category: 'tools', img: 'https://placehold.co' },
-    { id: 8, title: 'Перфоратор Makita HR2470', price: 11900, category: 'tools', img: 'https://placehold.co' },
+    { id: 1, title: 'Сплит-система Centek CT-65A09', price: 19990, category: 'mixes', img: 'https://imgbox.com' },
+    { id: 2, title: 'Инверторный кондиционер Haier', price: 32500, category: 'mixes', img: 'https://imgbox.com' },
+    { id: 3, title: 'Морозильный ларь Бирюса 100L', price: 14200, category: 'bricks', img: 'https://imgbox.com' },
+    { id: 4, title: 'Морозильная камера Atlant', price: 24800, category: 'bricks', img: 'https://imgbox.com' },
+    { id: 5, title: 'Шланг поливочный армированный 20м', price: 1250, category: 'roof', img: 'https://imgbox.com' },
+    { id: 6, title: 'Газонокосилка электрическая 1300W', price: 8900, category: 'roof', img: 'https://imgbox.com' },
+    { id: 7, title: 'Набор инструментов SATA 86 пред.', price: 5400, category: 'tools', img: 'https://imgbox.com' },
+    { id: 8, title: 'Перфоратор Makita HR2470', price: 11900, category: 'tools', img: 'https://imgbox.com' },
     
     // ВАШ НОВЫЙ ТОВАР С РЕАЛЬНЫМ ФОТО:
-    { id: 9, title: 'Сплит-система Centek CT-65F (с новым пультом)', price: 21500, category: 'mixes', img: 'https://ibb.co' }
+    { id: 9, title: 'Сплит-система Centek CT-65F (с новым пультом)', price: 21500, category: 'mixes', img: 'https://imgbox.com' }
 ];
 
 let cart = [];
