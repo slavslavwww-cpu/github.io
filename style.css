@@ -7,9 +7,9 @@
 }
 
 body {
-    /* Глубокий премиальный темно-серый/черный цвет фона */
-    background-color: #121212;
-    /* Яркий белый цвет для основного текста */
+    /* Мягкий графитовый/угольный фон, чтобы сайт не выглядел слишком "дешево-черным" */
+    background-color: #1a1c1e;
+    /* Чистый белый цвет для хорошей читаемости текста */
     color: #ffffff;
     scroll-behavior: smooth;
 }
@@ -22,15 +22,15 @@ body {
 
 /* Шапка сайта */
 .header {
-    /* Черный глянцевый фон шапки */
-    background: #1a1a1a;
-    /* Мягкая темная тень для отделения от контента */
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.5);
-    padding: 15px 0;
+    /* Глубокий черный матовый фон */
+    background: #111214;
+    padding: 18px 0;
     position: sticky;
     top: 0;
     z-index: 100;
-    border-bottom: 1px solid #2a2a2a;
+    /* Тонкая, стильная оранжевая полоса-акцент под шапкой */
+    border-bottom: 2px solid #ff7300;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .header-flex {
@@ -41,111 +41,140 @@ body {
 
 /* Название магазина "Строй Клик" */
 .logo {
-    font-size: 24px;
-    font-weight: 800;
-    /* Фирменный неоново-оранжевый акцент */
-    color: #ff6a00;
+    font-size: 26px;
+    font-weight: 900;
+    /* Яркий строительный оранжевый */
+    color: #ff7300;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .header-info span {
     margin-right: 20px;
     font-size: 14px;
-    /* Светло-серый цвет для второстепенного текста */
-    color: #b3b3b3;
+    /* Контрастный светло-серый текст для контактов */
+    color: #a0a5ad;
 }
 
 /* Кнопка Корзины */
 .cart-btn {
-    /* Насыщенный оранжевый цвет */
-    background: #ff6a00;
-    color: #121212; /* Черный текст внутри для максимальной контрастности */
+    background: #ff7300;
+    /* Черный текст кнопки для максимальной читаемости */
+    color: #111214;
     border: none;
-    padding: 10px 20px;
-    border-radius: 50px;
+    padding: 12px 24px;
+    border-radius: 8px; /* Более строгие, мужественные углы для строительной темы */
     font-weight: bold;
     cursor: pointer;
-    transition: 0.2s ease;
+    transition: all 0.25s ease;
 }
 
 .cart-btn:hover {
-    /* Более яркий оранжевый при наведении */
-    background: #ff8533;
-    transform: scale(1.05);
+    background: #ff8c33;
+    /* Эффект легкого свечения при наведении */
+    box-shadow: 0 0 15px rgba(255, 115, 0, 0.4);
+    transform: translateY(-2px);
 }
 
 /* Промо-блок (Hero) */
 .hero {
-    /* Идеальный градиент: от чистого черного к глубокому огненно-оранжевому */
-    background: linear-gradient(135deg, #000000 0%, #cc5200 100%);
+    /* Современный градиент от темного к глубокому оранжевому */
+    background: linear-gradient(180deg, #111214 0%, #2c1404 100%);
     color: white;
-    padding: 80px 0;
+    padding: 90px 0;
     text-align: center;
-    border-bottom: 1px solid #2a2a2a;
+    position: relative;
+}
+
+/* Декоративная линия, отделяющая баннер */
+.hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: rgba(255, 115, 0, 0.2);
 }
 
 .hero h1 {
-    font-size: 48px;
+    font-size: 52px;
     font-weight: 800;
-    margin-bottom: 15px;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    margin-bottom: 20px;
+    /* Тень, чтобы текст "горел" на темном фоне */
+    text-shadow: 0 2px 15px rgba(0, 0, 0, 0.6);
 }
 
 .hero-sub {
-    font-size: 18px;
-    opacity: 0.9;
-    margin-bottom: 30px;
+    font-size: 20px;
+    color: #e2e4e9;
+    margin-bottom: 35px;
 }
 
 /* Главная кнопка "Смотреть каталог" */
 .btn-primary {
-    /* Контрастный черный цвет кнопки на фоне оранжевого градиента */
-    background: #121212;
-    color: #ff6a00;
+    /* Стильный стиль: прозрачная кнопка с оранжевой рамкой */
+    background: transparent;
+    color: #ff7300;
     text-decoration: none;
-    padding: 15px 35px;
-    border-radius: 50px;
+    padding: 16px 40px;
+    border-radius: 8px;
     font-weight: bold;
     display: inline-block;
-    transition: 0.2s;
-    border: 2px solid #ff6a00;
+    transition: all 0.25s ease;
+    border: 2px solid #ff7300;
     cursor: pointer;
 }
 
 .btn-primary:hover {
-    /* При наведении инвертируется в оранжевый */
-    background: #ff6a00;
-    color: #121212;
-    box-shadow: 0 4px 20px rgba(255, 106, 0, 0.4);
+    /* При наведении полностью заливается оранжевым */
+    background: #ff7300;
+    color: #111214;
+    box-shadow: 0 5px 20px rgba(255, 115, 0, 0.3);
 }
 
-/* Блок счетчиков/преимуществ под баннером */
+/* Блок преимуществ */
 .stats {
     display: flex;
     justify-content: center;
-    gap: 40px;
-    margin-top: 50px;
+    gap: 50px;
+    margin-top: 60px;
 }
 
 .stats strong {
     display: block;
-    font-size: 24px;
-    /* Выделение цифр ярким оранжевым */
-    color: #ff6a00;
+    font-size: 28px;
+    color: #ff7300;
+    margin-bottom: 5px;
 }
 
-/* Дополнительные элементы из структуры Строй Клик */
+/* Названия секций (например, "Наш Ассортимент") */
 h2 {
     color: #ffffff;
-    margin-top: 40px;
-    margin-bottom: 20px;
+    font-size: 32px;
+    margin-top: 60px;
+    margin-bottom: 25px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-left: 4px solid #ff7300; /* Стильная оранжевая вертикальная полоса слева */
+    padding-left: 15px;
 }
 
-/* Стили для ссылок ассортимента и контактов */
+/* Ссылки категорий и контактов внизу */
 a {
-    color: #ff8533;
+    color: #ff8c33;
     text-decoration: none;
+    transition: color 0.2s;
 }
 
 a:hover {
-    color: #ff6a00;
+    color: #ff7300;
+}
+
+/* Автоматическая адаптация под карточки, если они у вас есть в HTML */
+.product-card, .card {
+    background: #111214 !important;
+    border: 1px solid #2c2e33 !important;
+    border-radius: 8px !important;
+    padding: 20px !important;
 }
