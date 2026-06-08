@@ -1,1 +1,649 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruru Burger: Platformer Adventure!</title>
+    <style>
+        /* Общие стили для body и контейнера игры */
+        body {
+            margin: 0;
+            overflow: hidden; /* Скрываем прокрутку, чтобы игра была центром внимания */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #87CEEB, #6495ED); /* Голубое небо */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
 
+        #game-container {
+            position: relative;
+            width: 1000px; /* Ширина игрового поля */
+            height: 500px; /* Высота игрового поля */
+            border: 5px solid #333;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #90EE90 70%, #32CD32 100%); /* Небо и трава */
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+        }
+
+        #score-board {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 1.2em;
+            z-index: 100;
+        }
+
+        #game-messages {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            display: none; /* Скрыто по умолчанию */
+            z-index: 101;
+            color: #FF4500; /* Оранжевый для сообщений */
+        }
+
+        /* Игровое поле - сдвигается для создания эффекта камеры */
+        #game-area {
+            position: absolute;
+            width: 3000px; /* Шире, чем контейнер, для горизонтальной прокрутки */
+            height: 100%;
+            left: 0; /* Будет меняться JavaScript'ом */
+            transition: left 0.1s linear; /* Плавное движение камеры */
+        }
+
+        /* Персонаж: Ruru Burger */
+        #player {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%; /* Круглое лицо */
+            background-color: #FCDA9C; /* Цвет кожи */
+            border: 2px solid #5C3A21; /* Контур лица */
+            z-index: 50;
+            transition: background-color 0.1s ease; /* Для эффекта при уроне/столкновении */
+        }
+
+        /* Детали лица Ruru Burger */
+        #player::before { /* Борода */
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 20px;
+            background-color: #5C3A21; /* Цвет бороды */
+            border-radius: 0 0 15px 15px;
+            top: 30px;
+            left: 10px;
+            z-index: 51;
+        }
+        #player::after { /* Волосы */
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 25px;
+            background-color: #333; /* Темные волосы */
+            border-radius: 25px 25px 0 0;
+            top: 0;
+            left: 0;
+            z-index: 49;
+        }
+        /* Глаза (показаны для примера) */
+        #player-eyes {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: black;
+            border-radius: 50%;
+            top: 15px;
+            left: 10px;
+        }
+        #player-eyes::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: black;
+            border-radius: 50%;
+            left: 20px;
+        }
+
+        /* Платформы */
+        .platform {
+            position: absolute;
+            background-color: #8B4513; /* Коричневый */
+            border: 2px solid #6A2800;
+            border-radius: 5px;
+            box-shadow: inset 0 -3px 5px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+        }
+        .platform.ground {
+            background-color: #32CD32; /* Зеленая земля */
+            border-color: #228B22;
+        }
+
+        /* Бургеры (собираемые предметы) */
+        .collectible {
+            position: absolute;
+            width: 30px;
+            height: 25px;
+            background-color: #FFD700; /* Цвет булочки */
+            border-radius: 50% / 30px 30px 0 0; /* Верхняя часть */
+            border: 2px solid #DAA520;
+            z-index: 20;
+        }
+        .collectible::before { /* Котлета */
+            content: '';
+            position: absolute;
+            width: 26px;
+            height: 10px;
+            background-color: #8B4513;
+            border-radius: 5px;
+            top: 10px;
+            left: 2px;
+        }
+        .collectible::after { /* Нижняя булочка */
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 10px;
+            background-color: #FFD700;
+            border-radius: 0 0 5px 5px;
+            top: 15px;
+            left: 0;
+        }
+        .collectible.collected {
+            display: none; /* Скрываем после сбора */
+        }
+
+        /* Враги */
+        .enemy {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: #FF4500; /* Оранжевый */
+            border-radius: 50%;
+            border: 2px solid #B22222;
+            z-index: 30;
+            animation: bounce 1s infinite alternate ease-in-out; /* Простая анимация врага */
+        }
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+        .enemy.defeated {
+            background-color: #696969; /* Серый, когда повержен */
+            opacity: 0.5;
+            transition: opacity 0.3s ease, background-color 0.3s ease;
+        }
+
+        /* Ямы (препятствия) */
+        .pit {
+            position: absolute;
+            background-color: #000; /* Черная яма */
+            z-index: 5;
+        }
+        .pit::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background-color: #5C3A21; /* Края ямы */
+        }
+
+        /* Конец уровня */
+        #end-goal {
+            position: absolute;
+            width: 50px;
+            height: 100px;
+            background-color: #DAA520; /* Золотая арка */
+            border: 5px solid #FFD700;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: #8B4513;
+            font-size: 0.8em;
+            text-align: center;
+            z-index: 10;
+        }
+        #end-goal::before {
+            content: 'ФИНИШ';
+        }
+
+        /* Медиа-запросы для адаптивности */
+        @media (max-width: 1024px) {
+            #game-container {
+                width: 90vw;
+                height: 45vw; /* Поддерживаем соотношение сторон */
+            }
+        }
+        @media (max-width: 768px) {
+            #game-container {
+                width: 95vw;
+                height: 50vw;
+                border-width: 3px;
+            }
+            #score-board {
+                font-size: 1em;
+                padding: 5px 10px;
+            }
+            #game-messages {
+                font-size: 1.5em;
+                padding: 15px 30px;
+            }
+        }
+        @media (max-width: 480px) {
+            #game-container {
+                width: 100vw;
+                height: 60vh; /* Используем vh для мобильных устройств, чтобы игра не была слишком узкой */
+                border: none;
+                border-radius: 0;
+            }
+            #player {
+                width: 40px;
+                height: 40px;
+            }
+            #player::before {
+                width: 25px;
+                height: 15px;
+                top: 25px;
+                left: 7.5px;
+            }
+            #player::after {
+                height: 20px;
+            }
+            #player-eyes {
+                width: 6px;
+                height: 6px;
+                top: 12px;
+                left: 8px;
+            }
+            #player-eyes::after {
+                width: 6px;
+                height: 6px;
+                left: 16px;
+            }
+            .collectible {
+                width: 25px;
+                height: 20px;
+            }
+            .collectible::before {
+                width: 21px;
+                height: 8px;
+                top: 8px;
+                left: 2px;
+            }
+            .collectible::after {
+                height: 8px;
+            }
+            .enemy {
+                width: 35px;
+                height: 35px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="score-board">Бургеры: <span id="burger-count">0</span></div>
+        <div id="game-messages"></div>
+        <div id="game-area">
+            <div id="player">
+                <div id="player-eyes"></div>
+            </div>
+            <!-- Элементы уровня будут добавлены JavaScript'ом -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const gameContainer = document.getElementById('game-container');
+            const gameArea = document.getElementById('game-area');
+            const player = document.getElementById('player');
+            const scoreBoard = document.getElementById('burger-count');
+            const gameMessages = document.getElementById('game-messages');
+
+            // --- Game Configuration ---
+            const GAME_WIDTH = 3000; // Ширина всего уровня
+            const GAME_HEIGHT = 500; // Высота игрового поля
+            const PLAYER_WIDTH = 50;
+            const PLAYER_HEIGHT = 50;
+            const GRAVITY = 0.5;
+            const JUMP_FORCE = -10;
+            const MOVE_SPEED = 5;
+            const CAMERA_SPEED = 0.5; // Насколько быстро камера догоняет игрока
+            const ENEMY_SPEED = 1;
+            const ENEMY_PATROL_DISTANCE = 100;
+            const PLAYER_DEFEAT_VELOCITY_Y = -15; // Скорость отскока игрока после победы над врагом
+
+            let playerX = 100;
+            let playerY = GAME_HEIGHT - PLAYER_HEIGHT - 50; // На земле
+            let playerVelX = 0;
+            let playerVelY = 0;
+            let isOnGround = false;
+            let score = 0;
+            let isGameOver = false;
+            let isGameWon = false;
+
+            // --- Level Definition ---
+            // x, y, width, height для платформ
+            // x, y для бургеров (width и height будут дефолтными)
+            // x, y, patrolDistance (опционально) для врагов
+            const levelElements = {
+                platforms: [
+                    { x: 0, y: GAME_HEIGHT - 50, width: 200, height: 50, type: 'ground' }, // Начальная земля
+                    { x: 300, y: GAME_HEIGHT - 100, width: 150, height: 20 },
+                    { x: 500, y: GAME_HEIGHT - 180, width: 100, height: 20 },
+                    { x: 700, y: GAME_HEIGHT - 100, width: 200, height: 20 },
+                    { x: 950, y: GAME_HEIGHT - 150, width: 100, height: 20 },
+                    { x: 1200, y: GAME_HEIGHT - 250, width: 200, height: 20 },
+                    { x: 1500, y: GAME_HEIGHT - 180, width: 150, height: 20 },
+                    { x: 1750, y: GAME_HEIGHT - 280, width: 100, height: 20 },
+                    { x: 1900, y: GAME_HEIGHT - 150, width: 250, height: 20 },
+                    { x: 2200, y: GAME_HEIGHT - 200, width: 100, height: 20 },
+                    { x: 2400, y: GAME_HEIGHT - 100, width: 300, height: 20, type: 'ground' } // Конечная земля
+                ],
+                collectibles: [
+                    { x: 350, y: GAME_HEIGHT - 130, width: 30, height: 25, collected: false },
+                    { x: 520, y: GAME_HEIGHT - 210, width: 30, height: 25, collected: false },
+                    { x: 750, y: GAME_HEIGHT - 130, width: 30, height: 25, collected: false },
+                    { x: 980, y: GAME_HEIGHT - 180, width: 30, height: 25, collected: false },
+                    { x: 1250, y: GAME_HEIGHT - 280, width: 30, height: 25, collected: false },
+                    { x: 1550, y: GAME_HEIGHT - 210, width: 30, height: 25, collected: false },
+                    { x: 1800, y: GAME_HEIGHT - 310, width: 30, height: 25, collected: false },
+                    { x: 2000, y: GAME_HEIGHT - 180, width: 30, height: 25, collected: false },
+                    { x: 2250, y: GAME_HEIGHT - 230, width: 30, height: 25, collected: false }
+                ],
+                enemies: [
+                    { x: 720, y: GAME_HEIGHT - 140 - 40, width: 40, height: 40, startX: 720, patrolRange: 100, direction: 1, defeated: false },
+                    { x: 1300, y: GAME_HEIGHT - 290 - 40, width: 40, height: 40, startX: 1300, patrolRange: 80, direction: -1, defeated: false },
+                    { x: 1950, y: GAME_HEIGHT - 190 - 40, width: 40, height: 40, startX: 1950, patrolRange: 120, direction: 1, defeated: false }
+                ],
+                pits: [
+                    { x: 1050, y: GAME_HEIGHT - 50, width: 150, height: 50 },
+                    { x: 2150, y: GAME_HEIGHT - 50, width: 100, height: 50 }
+                ],
+                endGoal: { x: 2500, y: GAME_HEIGHT - 150, width: 50, height: 100 }
+            };
+
+            // --- Game State Initialization ---
+            const keys = {}; // Для отслеживания нажатых клавиш
+
+            function initGame() {
+                // Очищаем игровое поле от старых элементов
+                gameArea.querySelectorAll('.platform, .collectible, .enemy, #end-goal').forEach(el => el.remove());
+
+                // Создаем элементы уровня
+                levelElements.platforms.forEach(p => {
+                    const el = document.createElement('div');
+                    el.className = `platform ${p.type || ''}`;
+                    el.style.left = `${p.x}px`;
+                    el.style.top = `${p.y}px`;
+                    el.style.width = `${p.width}px`;
+                    el.style.height = `${p.height}px`;
+                    gameArea.appendChild(el);
+                    p.element = el; // Сохраняем ссылку на DOM-элемент
+                });
+
+                levelElements.collectibles.forEach(c => {
+                    c.collected = false; // Сброс состояния
+                    const el = document.createElement('div');
+                    el.className = 'collectible';
+                    el.style.left = `${c.x}px`;
+                    el.style.top = `${c.y}px`;
+                    el.style.width = `${c.width}px`;
+                    el.style.height = `${c.height}px`;
+                    gameArea.appendChild(el);
+                    c.element = el;
+                });
+
+                levelElements.enemies.forEach(e => {
+                    e.defeated = false; // Сброс состояния
+                    e.x = e.startX; // Сброс позиции
+                    const el = document.createElement('div');
+                    el.className = 'enemy';
+                    el.style.left = `${e.x}px`;
+                    el.style.top = `${e.y}px`;
+                    el.style.width = `${e.width}px`;
+                    el.style.height = `${e.height}px`;
+                    gameArea.appendChild(el);
+                    e.element = el;
+                });
+
+                // Создаем элемент конца уровня
+                const endGoalEl = document.createElement('div');
+                endGoalEl.id = 'end-goal';
+                endGoalEl.style.left = `${levelElements.endGoal.x}px`;
+                endGoalEl.style.top = `${levelElements.endGoal.y}px`;
+                endGoalEl.style.width = `${levelElements.endGoal.width}px`;
+                endGoalEl.style.height = `${levelElements.endGoal.height}px`;
+                gameArea.appendChild(endGoalEl);
+                levelElements.endGoal.element = endGoalEl;
+
+
+                // Сброс состояния игрока
+                playerX = 100;
+                playerY = GAME_HEIGHT - PLAYER_HEIGHT - 50;
+                playerVelX = 0;
+                playerVelY = 0;
+                isOnGround = false;
+                score = 0;
+                isGameOver = false;
+                isGameWon = false;
+                scoreBoard.textContent = score;
+                gameMessages.style.display = 'none';
+
+                updatePlayerPosition();
+                updateCamera();
+            }
+
+            // --- Input Handling ---
+            window.addEventListener('keydown', (e) => {
+                keys[e.code] = true;
+                if (e.code === 'Space' || e.code === 'ArrowUp') {
+                    e.preventDefault(); // Предотвращаем прокрутку страницы пробелом
+                }
+            });
+
+            window.addEventListener('keyup', (e) => {
+                keys[e.code] = false;
+            });
+
+            function handleInput() {
+                if (isGameOver || isGameWon) return;
+
+                playerVelX = 0;
+                if (keys['ArrowLeft'] || keys['KeyA']) {
+                    playerVelX = -MOVE_SPEED;
+                }
+                if (keys['ArrowRight'] || keys['KeyD']) {
+                    playerVelX = MOVE_SPEED;
+                }
+                if ((keys['Space'] || keys['ArrowUp']) && isOnGround) {
+                    playerVelY = JUMP_FORCE;
+                    isOnGround = false;
+                }
+            }
+
+            // --- Physics and Collision ---
+            function updatePhysics() {
+                if (isGameOver || isGameWon) return;
+
+                // Apply gravity
+                playerVelY += GRAVITY;
+
+                // Update player position
+                playerX += playerVelX;
+                playerY += playerVelY;
+
+                // Keep player within horizontal bounds of the game world
+                playerX = Math.max(0, Math.min(playerX, GAME_WIDTH - PLAYER_WIDTH));
+
+                isOnGround = false; // Assume not on ground until collision is detected
+
+                // Platform collision
+                levelElements.platforms.forEach(p => {
+                    if (checkCollision(playerX, playerY, PLAYER_WIDTH, PLAYER_HEIGHT, p.x, p.y, p.width, p.height)) {
+                        // Collision from above (landing on platform)
+                        if (playerVelY > 0 && (playerY + PLAYER_HEIGHT - playerVelY <= p.y)) {
+                            playerY = p.y - PLAYER_HEIGHT;
+                            playerVelY = 0;
+                            isOnGround = true;
+                        }
+                        // Collision from below (hitting head on platform)
+                        else if (playerVelY < 0 && (playerY - playerVelY >= p.y + p.height)) {
+                            playerY = p.y + p.height;
+                            playerVelY = 0;
+                        }
+                        // Horizontal collision (should be handled differently for complex games, simplified here)
+                        // This game prioritizes vertical collision. For side collision, we'd adjust playerVelX
+                    }
+                });
+
+                // Fall off the bottom of the screen (into a pit or just fell off the world)
+                if (playerY + PLAYER_HEIGHT > GAME_HEIGHT) {
+                    gameOver("Вы упали в пропасть!");
+                }
+            }
+
+            function checkCollision(x1, y1, w1, h1, x2, y2, w2, h2) {
+                return x1 < x2 + w2 &&
+                       x1 + w1 > x2 &&
+                       y1 < y2 + h2 &&
+                       y1 + h1 > y2;
+            }
+
+            function updateCollectibles() {
+                levelElements.collectibles.forEach(c => {
+                    if (!c.collected && checkCollision(playerX, playerY, PLAYER_WIDTH, PLAYER_HEIGHT, c.x, c.y, c.width, c.height)) {
+                        c.collected = true;
+                        c.element.classList.add('collected'); // Скрываем бургер
+                        score++;
+                        scoreBoard.textContent = score;
+                    }
+                });
+            }
+
+            function updateEnemies() {
+                levelElements.enemies.forEach(e => {
+                    if (e.defeated) {
+                        // Поверженные враги просто остаются на месте или исчезают
+                        return;
+                    }
+
+                    // Simple patrol movement
+                    e.x += ENEMY_SPEED * e.direction;
+                    if (e.x <= e.startX - e.patrolRange || e.x >= e.startX + e.patrolRange) {
+                        e.direction *= -1; // Change direction
+                    }
+
+                    // Enemy collision with player
+                    if (checkCollision(playerX, playerY, PLAYER_WIDTH, PLAYER_HEIGHT, e.x, e.y, e.width, e.height)) {
+                        // Player hit enemy from above (stomped)
+                        if (playerVelY > 0 && (playerY + PLAYER_HEIGHT - playerVelY <= e.y + e.height / 2)) {
+                            e.defeated = true;
+                            e.element.classList.add('defeated');
+                            playerVelY = PLAYER_DEFEAT_VELOCITY_Y; // Player bounces up
+                        } else {
+                            // Player hit enemy from side or below - Game Over
+                            gameOver("Вас поймал враг!");
+                        }
+                    }
+                    e.element.style.left = `${e.x}px`;
+                });
+            }
+
+            function checkPits() {
+                levelElements.pits.forEach(p => {
+                    if (checkCollision(playerX, playerY, PLAYER_WIDTH, PLAYER_HEIGHT, p.x, p.y, p.width, p.height)) {
+                        gameOver("Вы упали в яму!");
+                    }
+                });
+            }
+
+            function checkWinCondition() {
+                if (!isGameWon && playerX + PLAYER_WIDTH > levelElements.endGoal.x) {
+                    isGameWon = true;
+                    gameWon();
+                }
+            }
+
+            // --- Rendering ---
+            function updatePlayerPosition() {
+                player.style.left = `${playerX}px`;
+                player.style.top = `${playerY}px`;
+            }
+
+            function updateCamera() {
+                // Камера следует за игроком, но не выходит за границы уровня
+                let cameraX = playerX - (gameContainer.offsetWidth / 2) + (PLAYER_WIDTH / 2);
+
+                // Ограничиваем движение камеры слева
+                cameraX = Math.max(0, cameraX);
+                // Ограничиваем движение камеры справа
+                cameraX = Math.min(cameraX, GAME_WIDTH - gameContainer.offsetWidth);
+
+                gameArea.style.left = `-${cameraX}px`;
+            }
+
+            // --- Game States ---
+            function gameOver(message) {
+                isGameOver = true;
+                gameMessages.textContent = `Игра окончена! ${message} Нажмите F5 для рестарта.`;
+                gameMessages.style.display = 'block';
+                // Опционально: можно добавить кнопку "Перезапустить" вместо F5
+            }
+
+            function gameWon() {
+                isGameWon = true;
+                gameMessages.textContent = `ПОБЕДА! Вы собрали ${score} бургеров! Нажмите F5 для рестарта.`;
+                gameMessages.style.display = 'block';
+            }
+
+            // --- Game Loop ---
+            function gameLoop() {
+                if (isGameOver || isGameWon) {
+                    // Если игра закончена или выиграна, не обновляем логику, но продолжаем рендерить
+                    requestAnimationFrame(gameLoop);
+                    return;
+                }
+
+                handleInput();
+                updatePhysics();
+                updateCollectibles();
+                updateEnemies();
+                checkPits(); // Проверка падения в яму
+                checkWinCondition();
+
+                updatePlayerPosition();
+                updateCamera(); // Обновляем положение камеры
+
+                requestAnimationFrame(gameLoop);
+            }
+
+            // Start the game!
+            initGame();
+            gameLoop();
+        });
+    </script>
+</body>
+</html>
