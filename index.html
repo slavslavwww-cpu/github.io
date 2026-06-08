@@ -1,1 +1,194 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruru Burger: The Secret Recipe</title>
+    <!-- Подключаем Tailwind для стильного пиксельного интерфейса -->
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        @import url('https://googleapis.com');
+        .pixel-font { font-family: 'Press Start 2P', monospace; }
+        body { background-color: #0b0f19; }
+        canvas { image-rendering: pixelated; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 text-white selection:bg-amber-500">
+
+    <!-- ИГРОВОЙ КОНТЕЙНЕР -->
+    <div class="w-full max-w-2xl bg-slate-900 border-4 border-slate-700 rounded-lg p-4 shadow-2xl">
+        
+        <!-- ШАПКА -->
+        <div class="flex justify-between items-center border-b-4 border-slate-700 pb-3 mb-3">
+            <div>
+                <h1 class="pixel-font text-xs sm:text-sm text-amber-400 tracking-wide">RURU BURGER</h1>
+                <p class="text-[9px] text-slate-400 mt-1 uppercase tracking-widest">Pixel Adventure v1.0</p>
+            </div>
+            <div class="bg-slate-950 px-3 py-1.5 border-2 border-slate-700 rounded text-right">
+                <span class="text-[9px] text-slate-400 block">МОНЕТЫ:</span>
+                <span id="ui-coins" class="pixel-font text-xs text-yellow-400">0</span>
+            </div>
+        </div>
+
+        <!-- ЭКРАН СЮЖЕТА / МЕНЮ -->
+        <div id="screen-story" class="flex flex-col items-center justify-center py-6 text-center">
+            <div class="w-24 h-24 bg-slate-800 border-4 border-amber-500 rounded-full flex items-center justify-center mb-4">
+                <!-- Пиксельный аватар Руру -->
+                <svg width="64" height="64" viewBox="0 0 16 16" class="image-rendering: pixelated;">
+                    <rect x="5" y="3" width="6" height="6" fill="#ffd1a9"/> <!-- Лицо -->
+                    <rect x="4" y="2" width="8" height="2" fill="#ef4444"/> <!-- Кепка -->
+                    <rect x="3" y="3" width="2" height="1" fill="#dc2626"/> <!-- Козырек -->
+                    <rect x="5" y="7" width="6" height="3" fill="#2d1e18"/> <!-- Борода -->
+                    <rect x="5" y="5" width="1" height="1" fill="#000"/> <!-- Глаз Л -->
+                    <rect x="9" y="5" width="1" height="1" fill="#000"/> <!-- Глаз П -->
+                    <rect x="4" y="9" width="8" height="5" fill="#1e293b"/> <!-- Форма -->
+                    <rect x="7" y="11" width="2" height="2" fill="#f59e0b"/> <!-- Мини-бургер значок -->
+                </svg>
+            </div>
+            <p class="pixel-font text-[10px] text-amber-400 mb-2">Глава 1: Защита Кухни</p>
+            <div class="bg-slate-950 border-2 border-slate-700 p-3 rounded max-w-md mb-4">
+                <p id="story-text" class="text-xs text-slate-300 leading-relaxed text-left">
+                    "Мутанты из старого холодильника напали на Ruru Burger! Они хотят украсть секретный рецепт. Помоги Руру собрать правильные бургеры и отбить атаку!"
+                </p>
+            </div>
+            <button id="btn-start-game" class="pixel-font text-xs bg-emerald-600 hover:bg-emerald-500 text-white border-b-4 border-emerald-800 active:border-b-0 px-6 py-3 rounded transition-all cursor-pointer">
+                ИГРАТЬ
+            </button>
+        </div>
+
+        <!-- ИГРОВОЙ ЭКРАН (СКРЫТ ПО УМОЛЧАНИЮ) -->
+        <div id="screen-game" class="hidden relative">
+            <div class="flex justify-between items-center mb-2 px-1 text-[10px] pixel-font">
+                <span class="text-emerald-400">БУРГЕРЫ: <span id="ui-burgers">0/5</span></span>
+                <span class="text-red-500">ЖИЗНИ: <span id="ui-lives">3</span></span>
+            </div>
+            <!-- Canvas поле -->
+            <canvas id="gameCanvas" width="500" height="350" class="w-full bg-slate-950 border-4 border-slate-800 rounded"></canvas>
+            <p class="text-[9px] text-slate-500 text-center mt-2">Управление: Стрелки влево/вправо или кнопки на экране</p>
+            
+            <!-- Мобильное управление -->
+            <div class="flex gap-4 mt-3 sm:hidden">
+                <button id="btn-left" class="flex-1 bg-slate-700 p-4 rounded active:bg-slate-600 text-center font-bold">◀</button>
+                <button id="btn-right" class="flex-1 bg-slate-700 p-4 rounded active:bg-slate-600 text-center font-bold">▶</button>
+            </div>
+        </div>
+
+        <!-- ЭКРАН МАГАЗИНА / МЕЖДУ УРОВНЯМИ (СКРЫТ ПО УМОЛЧАНИЮ) -->
+        <div id="screen-shop" class="hidden py-4 text-center">
+            <h3 class="pixel-font text-xs text-yellow-400 mb-3">МАГАЗИН АПГРЕЙДОВ RURU</h3>
+            <p class="text-xs text-slate-400 mb-4">Вы прошли уровень! Прокачайте шефа перед следующей волной мутантов.</p>
+            
+            <div class="space-y-3 max-w-md mx-auto mb-6">
+                <!-- Апгрейд 1 -->
+                <div class="bg-slate-950 border-2 border-slate-800 p-3 rounded flex justify-between items-center">
+                    <div class="text-left">
+                        <p class="text-xs font-bold text-white">Моторные ботинки</p>
+                        <p class="text-[10px] text-slate-400">Увеличивают скорость бега Руру</p>
+                    </div>
+                    <button id="buy-speed" class="pixel-font text-[9px] bg-amber-600 px-3 py-2 rounded text-white disabled:opacity-40">10 МОНЕТ</button>
+                </div>
+                <!-- Апгрейд 2 -->
+                <div class="bg-slate-950 border-2 border-slate-800 p-3 rounded flex justify-between items-center">
+                    <div class="text-left">
+                        <p class="text-xs font-bold text-white">Супер Лопатка</p>
+                        <p class="text-[10px] text-slate-400">Магнити ингредиенты чуть шире</p>
+                    </div>
+                    <button id="buy-magnet" class="pixel-font text-[9px] bg-amber-600 px-3 py-2 rounded text-white disabled:opacity-40">15 МОНЕТ</button>
+                </div>
+            </div>
+
+            <button id="btn-next-level" class="pixel-font text-xs bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded border-b-4 border-indigo-900 active:border-b-0">
+                СЛЕДУЮЩИЙ УРОВЕНЬ
+            </button>
+        </div>
+
+    </div>
+
+    <!-- ПОДВАЛ -->
+    <footer class="text-center text-[10px] text-slate-600 font-mono mt-4">
+        &copy; 2026 Ruru Burger Core. Код готов к коммиту на GitHub.
+    </footer>
+
+    <!-- СКРИПТ ИГРЫ -->
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Экраны
+        const sStory = document.getElementById('screen-story');
+        const sGame = document.getElementById('screen-game');
+        const sShop = document.getElementById('screen-shop');
+
+        // Кнопки
+        const btnStart = document.getElementById('btn-start-game');
+        const btnNext = document.getElementById('btn-next-level');
+        const buySpeedBtn = document.getElementById('buy-speed');
+        const buyMagnetBtn = document.getElementById('buy-magnet');
+
+        // UI Элементы
+        const uiCoins = document.getElementById('ui-coins');
+        const uiBurgers = document.getElementById('ui-burgers');
+        const uiLives = document.getElementById('ui-lives');
+        const storyText = document.getElementById('story-text');
+
+        // Состояние игры
+        let gameState = 'STORY'; 
+        let coins = 0;
+        let burgersCollected = 0;
+        let burgersNeeded = 5;
+        let lives = 3;
+        let currentLevel = 1;
+
+        // Характеристики игрока (апгрейды)
+        let playerSpeed = 4;
+        let playerWidth = 40;
+
+        // Координаты игрока
+        const player = {
+            x: canvas.width / 2 - 20,
+            y: canvas.height - 50,
+            width: 40,
+            height: 45
+        };
+
+        // Списки падающих предметов
+        let items = [];
+        let itemTypes = [
+            { type: 'bun', color: '#E28743', points: 1, isEnemy: false },
+            { type: 'patty', color: '#523626', points: 1, isEnemy: false },
+            { type: 'cheese', color: '#FFB703', points: 1, isEnemy: false },
+            { type: 'enemy_tomato', color: '#E63946', points: 0, isEnemy: true },
+            { type: 'enemy_onion', color: '#A8dadc', points: 0, isEnemy: true }
+        ];
+
+        // Кнопки управления
+        let keys = { Left: false, Right: false };
+
+        // Инициализация кликов
+        btnStart.addEventListener('click', startGame);
+        btnNext.addEventListener('click', startNextLevel);
+        
+        // Покупка апгрейдов
+        buySpeedBtn.addEventListener('click', () => {
+            if(coins >= 10) { coins -= 10; playerSpeed += 1.5; uiCoins.textContent = coins; buySpeedBtn.disabled = true; buySpeedBtn.textContent = 'КУПЛЕНО'; }
+        });
+        buyMagnetBtn.addEventListener('click', () => {
+            if(coins >= 15) { coins -= 15; player.width += 15; playerWidth += 15; uiCoins.textContent = coins; buyMagnetBtn.disabled = true; buyMagnetBtn.textContent = 'КУПЛЕНО'; }
+        });
+
+        // Слушатели клавиатуры
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') keys.Left = true;
+            if (e.key === 'ArrowRight') keys.Right = true;
+        });
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft') keys.Left = false;
+            if (e.key === 'ArrowRight') keys.Right = false;
+        });
+
+        // Тач-кнопки для мобилок
+        document.getElementById('btn-left').addEventListener('touchstart', () => keys.Left = true);
+        document.getElementById('btn-left').addEventListener('touchend', () => keys.Left = false);
+        document.getElementById('btn-right').addEventListener('touchstart', () => keys.Right = true);
+
 
