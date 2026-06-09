@@ -1,1 +1,227 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruru Burger - Управление Кафе</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .game-container {
+            background-color: #34495e;
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #f1c40f;
+            margin-top: 0;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background-color: #2c3e50;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+        .owners {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            background: #1abc9c;
+            padding: 10px;
+            border-radius: 5px;
+            color: #fff;
+        }
+        .owner-card {
+            text-align: center;
+            width: 45%;
+        }
+        .owner-desc {
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .panel {
+            background-color: #2c3e50;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #e67e22;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            font-size: 1em;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #d35400;
+        }
+        button:disabled {
+            background-color: #7f8c8d;
+            cursor: not-allowed;
+        }
+        .log {
+            background-color: #111;
+            color: #2ecc71;
+            padding: 10px;
+            border-radius: 5px;
+            height: 120px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
 
+<div class="game-container">
+    <h1>🍔 Ruru Burger 🍔</h1>
+    
+    <!-- Раздел с владельцами -->
+    <div class="owners">
+        <div class="owner-card">
+            <strong>🧔 Боб</strong>
+            <div class="owner-desc">Маленький и бородатый шеф-повар. Готовит лучшие котлеты!</div>
+        </div>
+        <div class="owner-card">
+            <strong>🦒 Зигги</strong>
+            <div class="owner-desc">Длинный и худой менеджер. Зазывает гостей и считает деньги.</div>
+        </div>
+    </div>
+
+    <!-- Главные показатели -->
+    <div class="stats">
+        <div>💵 Деньги: <span id="money">100</span>$</div>
+        <div>🥩 Котлеты: <span id="meat">5</span> шт.</div>
+        <div>Уровень кафе: <span id="cafe-level">1</span></div>
+    </div>
+
+    <div class="grid">
+        <!-- Панель закупок -->
+        <div class="panel">
+            <h2>📦 Закупка товара</h2>
+            <p>Цена 1 котлеты: <span id="meat-cost">10</span>$</p>
+            <button id="btn-buy" onclick="buyMeat()">Купить 1 котлету</button>
+        </div>
+
+        <!-- Панель прокачки -->
+        <div class="panel">
+            <h2>🚀 Прокачка кафе</h2>
+            <p>Цена улучшения: <span id="upgrade-cost">50</span>$</p>
+            <p>Доход за бургер: <span id="burger-price">15</span>$</p>
+            <button id="btn-upgrade" onclick="upgradeCafe()">Улучшить интерьер</button>
+        </div>
+    </div>
+
+    <!-- Кнопка работы -->
+    <div style="margin-top: 20px;">
+        <button id="btn-work" style="background-color: #2ecc71; font-size: 1.3em; padding: 15px;" onclick="openCafe()">
+            🏪 Открыть кафе на вечер!
+        </button>
+    </div>
+
+    <!-- Журнал событий -->
+    <h2>📋 История событий</h2>
+    <div class="log" id="game-log">
+        Боб и Зигги открыли Ruru Burger! Закупите мясо и начните работу.
+    </div>
+</div>
+
+<script>
+    // Начальные настройки игры
+    let gameState = {
+        money: 100,
+        meat: 5,
+        cafeLevel: 1,
+        meatCost: 10,
+        burgerPrice: 15,
+        upgradeCost: 50
+    };
+
+    // Обновление текста на экране
+    function updateUI() {
+        document.getElementById('money').innerText = gameState.money;
+        document.getElementById('meat').innerText = gameState.meat;
+        document.getElementById('cafe-level').innerText = gameState.cafeLevel;
+        document.getElementById('meat-cost').innerText = gameState.meatCost;
+        document.getElementById('burger-price').innerText = gameState.burgerPrice;
+        document.getElementById('upgrade-cost').innerText = gameState.upgradeCost;
+
+        // Проверка кнопок (чтобы нельзя было нажать без денег)
+        document.getElementById('btn-buy').disabled = gameState.money < gameState.meatCost;
+        document.getElementById('btn-upgrade').disabled = gameState.money < gameState.upgradeCost;
+        document.getElementById('btn-work').disabled = gameState.meat <= 0;
+    }
+
+    // Добавление записи в журнал
+    function logMessage(text) {
+        const log = document.getElementById('game-log');
+        log.innerHTML += `<br>> ${text}`;
+        log.scrollTop = log.scrollHeight; // Прокрутка вниз
+    }
+
+    // Логика покупки мяса
+    function buyMeat() {
+        if (gameState.money >= gameState.meatCost) {
+            gameState.money -= gameState.meatCost;
+            gameState.meat += 1;
+            logMessage(`Зигги съездил на рынок и купил котлету за ${gameState.meatCost}$.`);
+            updateUI();
+        }
+    }
+
+    // Логика улучшения кафе
+    function upgradeCafe() {
+        if (gameState.money >= gameState.upgradeCost) {
+            gameState.money -= gameState.upgradeCost;
+            gameState.cafeLevel += 1;
+            gameState.burgerPrice += 5; // Каждый уровень приносит больше денег
+            gameState.upgradeCost = Math.floor(gameState.upgradeCost * 1.5); // Цена следующего улучшения растет
+            logMessage(`Боб купил новые столы! Кафе теперь ${gameState.cafeLevel} уровня. Гости платят больше!`);
+            updateUI();
+        }
+    }
+
+    // Логика работы кафе
+    function openCafe() {
+        if (gameState.meat > 0) {
+            let customers = Math.floor(Math.random() * gameState.meat) + 1; // Сколько пришло гостей
+            let earned = customers * gameState.burgerPrice;
+            
+            gameState.meat -= customers;
+            gameState.money += earned;
+            
+            logMessage(`Вечер начался! Боб пожарил ${customers} котлет. Зигги обслужил гостей и получил ${earned}$.`);
+            updateUI();
+        }
+    }
+
+    // Самый первый запуск обновлений экрана
+    updateUI();
+</script>
+
+</body>
+</html>
