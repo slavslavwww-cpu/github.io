@@ -2,11 +2,11 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ruru Burger - Arcade Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ruru Burger - Fix Edition</title>
     <style>
         body {
-            font-family: 'Courier New', Courier, monospace;
+            font-family: sans-serif;
             background-color: #111116;
             color: #fff;
             margin: 0;
@@ -15,266 +15,280 @@
             flex-direction: column;
             align-items: center;
             user-select: none;
+            touch-action: manipulation;
         }
         .game-title {
             color: #f1c40f;
-            text-shadow: 2px 2px #d35400;
-            margin: 5px 0 0 0;
-            font-size: 1.8em;
-        }
-        .instructions {
-            color: #bdc3c7;
-            font-size: 0.9em;
-            margin-bottom: 10px;
+            margin: 5px 0;
+            font-size: 1.5em;
             text-align: center;
         }
         .stats-bar {
             display: flex;
-            width: 850px;
+            width: 100%;
+            max-width: 600px;
             justify-content: space-between;
             background: #2c3e50;
-            border: 4px solid #f1c40f;
-            padding: 10px;
+            border: 2px solid #f1c40f;
+            padding: 8px;
             box-sizing: border-box;
             font-weight: bold;
-            font-size: 1.1em;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        .canvas-container {
+            width: 100%;
+            max-width: 600px;
+            position: relative;
         }
         canvas {
             background-color: #34495e;
-            border: 4px solid #fff;
+            border: 2px solid #fff;
             display: block;
-            image-rendering: pixelated;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 2 / 1;
         }
         .tip {
-            margin-top: 5px;
+            margin: 5px 0;
             color: #2ecc71;
-            font-size: 0.9em;
+            font-size: 0.85em;
             font-weight: bold;
+            text-align: center;
+        }
+        /* Кнопки управления для телефона */
+        .mobile-controls {
+            display: flex;
+            width: 100%;
+            max-width: 600px;
+            justify-content: space-between;
+            margin-top: 10px;
+            gap: 10px;
+        }
+        .nav-btns {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+        }
+        .m-btn {
+            background-color: #34495e;
+            border: 3px solid #bdc3c7;
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+            padding: 15px 0;
+            flex: 1;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .m-btn:active {
+            background-color: #f1c40f;
+            color: black;
+        }
+        #m-action {
+            background-color: #e67e22;
+            border-color: #d35400;
+            flex: 1;
+        }
+        #m-action:active {
+            background-color: #d35400;
+        }
+        .pc-info {
+            font-size: 0.8em;
+            color: #7f8c8d;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
 
-<h1 class="game-title">🍔 Ruru Burger: Arcade Version 🍔</h1>
-<div class="instructions">Управление Зигги: <b>Стрелки Влево/Вправо</b> — ходить | <b>Пробел</b> — взять/положить/купить</div>
+<h1 class="game-title">🍔 Ruru Burger Mobile 🍔</h1>
 
 <div class="stats-bar">
-    <div>💵 Деньги: <span id="ui-money">100</span>$</div>
-    <div>🥩 В холодильнике: <span id="ui-meat">5</span> шт.</div>
-    <div>⭐ Уровень Кафе: <span id="ui-level">1</span></div>
+    <div>💵 Валюта: <span id="ui-money">100</span>$</div>
+    <div>🥩 Склад: <span id="ui-meat">5</span> шт.</div>
+    <div>⭐ Лвл: <span id="ui-level">1</span></div>
 </div>
 
-<canvas id="gameCanvas" width="850" height="320"></canvas>
-<div class="tip" id="action-tip">Подсказка: Идите к грузовику слева для закупки мяса!</div>
+<div class="canvas-container">
+    <canvas id="gameCanvas" width="600" height="300"></canvas>
+</div>
+
+<div class="tip" id="action-tip">Идите к машине слева за коробкой мяса!</div>
+
+<!-- Кнопки для телефона -->
+<div class="mobile-controls">
+    <div class="nav-btns">
+        <div class="m-btn" id="m-left">⬅️</div>
+        <div class="m-btn" id="m-right">➡️</div>
+    </div>
+    <div class="m-btn" id="m-action">ДЕЙСТВИЕ</div>
+</div>
+
+<div class="pc-info">Для ПК: Стрелки клавиатуры — ходить, Пробел — действие.</div>
 
 <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    // Базовые данные игры
-    let game = {
-        money: 100,
-        fridgeMeat: 5,
-        level: 1,
-        meatCost: 10,
-        upgradeCost: 60,
-        burgerPrice: 15
-    };
+    let game = { money: 100, fridgeMeat: 5, level: 1, meatCost: 10, upgradeCost: 60, burgerPrice: 15 };
+    let ziggy = { x: 300, y: 200, speed: 5, dir: 1, carrying: 'nothing' };
+    let bob = { x: 500, y: 210, state: 'idle', progress: 0 };
 
-    // Главный герой (Зигги), которым мы управляем
-    let ziggy = {
-        x: 350,
-        y: 200,
-        speed: 4,
-        dir: 1,
-        frame: 0,
-        isMoving: false,
-        carrying: 'nothing' // 'nothing', 'meat_box', 'burger'
-    };
+    let counterBurgers = 0;
+    let guest = { state: 'none', timer: 0, patience: 100, moneyOnTable: 0 };
 
-    // Боб (повар, работает сам)
-    let bob = {
-        x: 650,
-        y: 220,
-        state: 'idle', // 'idle', 'cooking'
-        timer: 0,
-        progress: 0
-    };
-
-    // Объекты на локации (координаты X для взаимодействия)
-    const TRIGGER_TRUCK = 70;      // Закупка у грузовика
-    const TRIGGER_FRIDGE = 580;    // Холодильник для сырого мяса
-    const TRIGGER_COUNTER = 480;   // Прилавок (куда Боб кладет бургеры, и касса для апгрейда)
-    const TRIGGER_TABLE = 240;     // Стол гостей
-
-    // Гости и прилавок
-    let counterBurgers = 0; // Сколько готовых бургеров лежит на выдаче
-    let guest = {
-        state: 'none', // 'none', 'waiting', 'eating', 'leaving_money'
-        timer: 0,
-        patience: 100,
-        moneyOnTable: 0
-    };
-
-    // Дым от плиты
-    let particles = [];
-
-    // Кнопки управления
+    // Управление
     let keys = {};
-    window.addEventListener('keydown', e => { keys[e.code] = true; if(e.code === 'Space') handleAction(); });
+    let moveLeft = false;
+    let moveRight = false;
+
+    // Клавиатура ПК
+    window.addEventListener('keydown', e => { 
+        keys[e.code] = true; 
+        if(e.code === 'Space') { e.preventDefault(); handleAction(); }
+    });
     window.addEventListener('keyup', e => keys[e.code] = false);
 
-    // Обработка нажатия на Пробел (Действия Зигги)
+    // Кнопки телефона
+    const btnLeft = document.getElementById('m-left');
+    const btnRight = document.getElementById('m-right');
+    const btnAction = document.getElementById('m-action');
+
+    btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); moveLeft = true; });
+    btnLeft.addEventListener('touchend', () => moveLeft = false);
+    btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); moveRight = true; });
+    btnRight.addEventListener('touchend', () => moveRight = false);
+    btnAction.addEventListener('touchstart', (e) => { e.preventDefault(); handleAction(); });
+
+    // Эмуляция для мышки на ПК (если проверять в режиме разработчика)
+    btnLeft.addEventListener('mousedown', () => moveLeft = true);
+    btnLeft.addEventListener('mouseup', () => moveLeft = false);
+    btnRight.addEventListener('mousedown', () => moveRight = true);
+    btnRight.addEventListener('mouseup', () => moveRight = false);
+    btnAction.addEventListener('mousedown', handleAction);
+
     function handleAction() {
-        // 1. У грузовика (Закупка)
-        if (Math.abs(ziggy.x - TRIGGER_TRUCK) < 40 && ziggy.carrying === 'nothing') {
+        // У грузовика (x < 100)
+        if (ziggy.x < 100 && ziggy.carrying === 'nothing') {
             if (game.money >= game.meatCost) {
                 game.money -= game.meatCost;
                 ziggy.carrying = 'meat_box';
-                showTip("Вы взяли коробку мяса! Несите её в кафе к холодильнику.");
-            } else {
-                showTip("Недостаточно денег для закупки мяса!");
-            }
+                showTip("Взяли мясо! Несите направо к холодильнику.");
+            } else { showTip("Мало денег!"); }
         }
-        
-        // 2. У холодильника (Разгрузка мяса)
-        else if (Math.abs(ziggy.x - TRIGGER_FRIDGE) < 30 && ziggy.carrying === 'meat_box') {
-            ziggy.carrying = 'nothing';
-            game.fridgeMeat++;
-            showTip("Мясо добавлено в холодильник. Боб может начинать готовить!");
-        }
-
-        // 3. У прилавка (Взять бургер или Апгрейд кафе)
-        else if (Math.abs(ziggy.x - TRIGGER_COUNTER) < 30) {
-            if (ziggy.carrying === 'nothing' && counterBurgers > 0) {
-                counterBurgers--;
-                ziggy.carrying = 'burger';
-                showTip("Вы взяли бургер! Отнесите его гостю за стол.");
-            } else if (ziggy.carrying === 'nothing' && counterBurgers === 0) {
-                // Если бургера нет, пробуем улучшить кафе
-                if (game.money >= game.upgradeCost) {
-                    game.money -= game.upgradeCost;
-                    game.level++;
-                    game.burgerPrice += 5;
-                    game.upgradeCost = Math.floor(game.upgradeCost * 1.7);
-                    showTip(`Кафе улучшено до уровня ${game.level}! Бургеры стали дороже.`);
-                } else {
-                    showTip(`Для апгрейда нужно ${game.upgradeCost}$. Подзаработайте денег!`);
-                }
-            }
-        }
-
-        // 4. У стола (Отдать бургер или Забрать чаевые)
-        else if (Math.abs(ziggy.x - TRIGGER_TABLE) < 40) {
+        // У столика гостей (x от 180 до 240)
+        else if (ziggy.x >= 180 && ziggy.x <= 240) {
             if (ziggy.carrying === 'burger' && guest.state === 'waiting') {
                 ziggy.carrying = 'nothing';
                 guest.state = 'eating';
-                guest.timer = 120; // Время на поедание бургера
-                showTip("Гость кушает. Подождите немного, пока он закончит.");
+                guest.timer = 100;
+                showTip("Гость кушает бургер.");
             } else if (ziggy.carrying === 'nothing' && guest.state === 'leaving_money') {
                 game.money += guest.moneyOnTable;
                 guest.moneyOnTable = 0;
                 guest.state = 'none';
-                showTip(`Вы забрали выручку! Отличная работа.`);
+                showTip("Забрали выручку!");
             }
+        }
+        // У прилавка/кассы (x от 330 до 400)
+        else if (ziggy.x >= 330 && ziggy.x <= 400) {
+            if (ziggy.carrying === 'nothing' && counterBurgers > 0) {
+                counterBurgers--;
+                ziggy.carrying = 'burger';
+                showTip("Взяли бургер! Отнесите за столик слева.");
+            } else if (ziggy.carrying === 'nothing' && counterBurgers === 0) {
+                if (game.money >= game.upgradeCost) {
+                    game.money -= game.upgradeCost;
+                    game.level++;
+                    game.burgerPrice += 5;
+                    game.upgradeCost = Math.floor(game.upgradeCost * 1.6);
+                    showTip("Кафе улучшено! Стены обновились.");
+                } else { showTip(`Для улучшения нужно ${game.upgradeCost}$.`); }
+            }
+        }
+        // У холодильника (x > 440)
+        else if (ziggy.x > 440 && ziggy.carrying === 'meat_box') {
+            ziggy.carrying = 'nothing';
+            game.fridgeMeat++;
+            showTip("Положили мясо. Боб начинает готовить!");
         }
         updateUI();
     }
 
-    function showTip(text) {
-        document.getElementById('action-tip').innerText = text;
-    }
-
+    function showTip(text) { document.getElementById('action-tip').innerText = text; }
     function updateUI() {
         document.getElementById('ui-money').innerText = game.money;
         document.getElementById('ui-meat').innerText = game.fridgeMeat;
         document.getElementById('ui-level').innerText = game.level;
     }
 
-    // --- ОТРИСОВКА ПИКСЕЛЬ-АРТА ---
-
-    function drawBob(x, y, bobState) {
-        let bobY = y;
-        if (bobState === 'cooking') bobY += (Math.floor(Date.now() / 150) % 2) * 2; // Трясется при готовке
-
-        ctx.fillStyle = '#f39c12'; // Борода
-        ctx.fillRect(x - 8, bobY + 4, 16, 12);
-        ctx.fillStyle = '#ffdbac'; // Лицо
-        ctx.fillRect(x - 5, bobY - 2, 11, 8);
-        ctx.fillStyle = '#fff';    // Колпак
-        ctx.fillRect(x - 6, bobY - 14, 13, 12);
-        ctx.fillStyle = '#7f8c8d'; // Одежда
-        ctx.fillRect(x - 7, bobY + 12, 15, 14);
-        ctx.fillStyle = '#000';    // Глаза смотрят налево, на плиту
-        ctx.fillRect(x - 4, bobY, 2, 2);
-    }
-
-    function drawZiggy(x, y) {
-        let zigY = y;
-        if (ziggy.isMoving) zigY += (Math.floor(ziggy.frame / 5) % 2) * 3; // Анимация покачивания ног
-
-        ctx.fillStyle = '#9b59b6'; // Свитер
-        ctx.fillRect(x - 4, zigY, 9, 28);
-        ctx.fillStyle = '#ffdbac'; // Кожа
-        ctx.fillRect(x - 4, zigY - 12, 9, 12);
-        ctx.fillStyle = '#2c3e50'; // Ноги
-        ctx.fillRect(x - 4, zigY + 28, 3, 16);
-        ctx.fillRect(x + 2, zigY + 28, 3, 16);
-        ctx.fillStyle = '#34495e'; // Волосы
-        ctx.fillRect(x - 5, zigY - 16, 11, 5);
-        ctx.fillStyle = '#000';    // Глаза
-        ctx.fillRect(x + (ziggy.dir > 0 ? 2 : -3), zigY - 8, 2, 2);
-
-        // Что в руках?
-        if (ziggy.carrying === 'meat_box') {
-            ctx.fillStyle = '#d35400'; // Коробка мяса
-            ctx.fillRect(x + (ziggy.dir > 0 ? 6 : -16), zigY + 4, 12, 12);
-        } else if (ziggy.carrying === 'burger') {
-            ctx.fillStyle = '#f1c40f'; // Бургер в руках
-            ctx.fillRect(x + (ziggy.dir > 0 ? 6 : -14), zigY + 6, 10, 6);
-            ctx.fillStyle = '#e74c3c'; // Котлета внутри
-            ctx.fillRect(x + (ziggy.dir > 0 ? 6 : -14), zigY + 8, 10, 2);
+    function gameLoop() {
+        // Передвижение
+        if (keys['ArrowLeft'] || keys['KeyA'] || moveLeft) {
+            ziggy.x -= ziggy.speed;
+            ziggy.dir = -1;
         }
-    }
+        if (keys['ArrowRight'] || keys['KeyD'] || moveRight) {
+            ziggy.x += ziggy.speed;
+            ziggy.dir = 1;
+        }
 
-    function drawScene() {
-        // Задний фон (Улица и Кафе)
+        if (ziggy.x < 20) ziggy.x = 20;
+        if (ziggy.x > 580) ziggy.x = 580;
+
+        // Повар Боб автоматический
+        if (bob.state === 'idle' && game.fridgeMeat > 0 && counterBurgers < 3) {
+            game.fridgeMeat--;
+            bob.state = 'cooking';
+            bob.progress = 0;
+            updateUI();
+        }
+        if (bob.state === 'cooking') {
+            bob.progress += 0.6;
+            if (bob.progress >= 100) {
+                bob.state = 'idle';
+                counterBurgers++;
+            }
+        }
+
+        // Посетители
+        if (guest.state === 'none' && Math.random() < 0.005) {
+            guest.state = 'waiting';
+            guest.patience = 100;
+        }
+        if (guest.state === 'waiting') {
+            guest.patience -= 0.1;
+            if (guest.patience <= 0) {
+                guest.state = 'none';
+                showTip("Гость ушел, не дождавшись еды!");
+            }
+        }
+        if (guest.state === 'eating') {
+            guest.timer--;
+            if (guest.timer <= 0) {
+                guest.state = 'leaving_money';
+                guest.moneyOnTable = game.burgerPrice;
+            }
+        }
+
+        // РИСОВАНИЕ ИГРЫ
         ctx.fillStyle = '#111'; // Улица снаружи
-        ctx.fillRect(0, 0, 850, 320);
+        ctx.fillRect(0, 0, 600, 300);
 
-        // Цвета стен внутри зависят от уровня кафе
-        ctx.fillStyle = game.level >= 3 ? '#234e40' : (game.level === 2 ? '#4a6572' : '#34495e'); 
-        ctx.fillRect(180, 20, 670, 240);
+        // Внутренние стены меняются от уровня
+        ctx.fillStyle = game.level >= 3 ? '#1e3f20' : (game.level === 2 ? '#2e4053' : '#34495e');
+        ctx.fillRect(150, 20, 450, 230);
 
         // Полы
-        ctx.fillStyle = '#7f8c8d'; // Асфальт
-        ctx.fillRect(0, 260, 180, 60);
-        ctx.fillStyle = game.level >= 2 ? '#1c2833' : '#2c3e50'; // Пол внутри
-        ctx.fillRect(180, 260, 670, 60);
+        ctx.fillStyle = '#7f8c8d'; ctx.fillRect(0, 250, 150, 50);
+        ctx.fillStyle = '#2c3e50'; ctx.fillRect(150, 250, 450, 50);
 
         // Дверь
-        ctx.fillStyle = '#7e5109';
-        ctx.fillRect(180, 140, 45, 120);
+        ctx.fillStyle = '#7e5109'; ctx.fillRect(150, 150, 35, 100);
 
-        // Грузовик (Слева)
-        ctx.fillStyle = '#c0392b';
-        ctx.fillRect(10, 150, 90, 70);
-        ctx.fillStyle = '#f1c40f';
-        ctx.fillRect(100, 180, 20, 40);
-        ctx.fillStyle = '#333';
-        ctx.fillRect(25, 215, 20, 20);
-        ctx.fillRect(80, 215, 20, 20);
+        // Машина снабжения
+        ctx.fillStyle = '#c0392b'; ctx.fillRect(10, 160, 80, 60);
+        ctx.fillStyle = '#f1c40f'; ctx.fillRect(90, 180, 15, 40);
 
-        // Стол гостей (Слева в кафе)
-        ctx.fillStyle = game.level >= 3 ? '#f1c40f' : '#a0522d';
-        ctx.fillRect(TRIGGER_TABLE - 15, 210, 50, 50);
-
-        // Прилавок выдачи и касса (По центру)
-        ctx.fillStyle = '#bdc3c7';
-        ctx.fillRect(TRIGGER_COUNTER - 20, 200, 60, 60);
-        ctx.fillStyle = '#f39c12'; // Кассовый аппарат
-        ctx.fillRect(TRIGGER_COUNTER + 10, 185, 15, 15);
-
-        // Отображение готовых бургеров на прилавке
-        for (let i = 0; i < counterBurgers; i++) {
-            ctx.fillStyle = '#f1c40f';
