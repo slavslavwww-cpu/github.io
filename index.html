@@ -1,34 +1,114 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Pixel Burger Cafe</title>
     <style>
+        /* Общие стили для body */
         body {
             display: flex;
+            flex-direction: column; /* Изменено для размещения кнопок */
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
             background-color: #222;
             overflow: hidden;
-            font-family: 'Press Start 2P', cursive; /* Позже добавим кастомный шрифт */
+            font-family: 'Press Start 2P', cursive; /* Используем пиксельный шрифт, если доступен */
             color: #eee;
+            -webkit-user-select: none; /* Отключаем выделение текста для лучшего взаимодействия на мобильных */
+            user-select: none;
+            touch-action: manipulation; /* Предотвращает двойное нажатие для зума */
         }
 
+        /* Стили для игрового Canvas */
         #gameCanvas {
             background-color: #333;
             border: 4px solid #555;
             image-rendering: pixelated; /* Важно для пиксельной графики */
-            width: 800px; /* Увеличиваем размер для лучшей видимости */
-            height: 600px;
+            /* Делаем Canvas более отзывчивым для мобильных */
+            max-width: 95vw;
+            max-height: 95vh;
+            width: auto; /* Позволяет Canvas масштабироваться */
+            height: auto;
+            display: block; /* Убираем лишние отступы */
+            margin-bottom: 10px; /* Отступ от кнопок */
         }
+
+        /* Контейнер для мобильных кнопок */
+        #mobile-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .dpad-row {
+            display: flex;
+        }
+
+        /* Стили для кнопок управления */
+        .control-button {
+            background-color: #555;
+            color: #FFF;
+            border: 2px solid #777;
+            border-radius: 5px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            margin: 5px;
+            cursor: pointer;
+            user-select: none;
+            touch-action: manipulation;
+            transition: background-color 0.1s;
+        }
+
+        .control-button:active, .control-button.active {
+            background-color: #777;
+            border-color: #AAA;
+        }
+
+        #action-button {
+            background-color: #007BFF;
+            border-color: #0056b3;
+            width: 80px;
+            height: 80px;
+            font-size: 1.8em;
+            margin-left: 20px; /* Отступ от d-pad */
+        }
+        #action-button:active, #action-button.active {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+
+        /* Стилизация для пиксельного шрифта (если нужно) */
+        @font-face {
+            font-family: 'Press Start 2P';
+            src: url('https://fonts.cdnfonts.com/s/7201/PressStart2P-Regular.woff') format('woff'); /* Пример, в реальном проекте лучше хранить локально */
+            font-weight: normal;
+            font-style: normal;
+        }
+        /* Если шрифт не загрузится, будет использован monospace */
     </style>
 </head>
 <body>
     <canvas id="gameCanvas" width="400" height="300"></canvas>
+
+    <div id="mobile-controls">
+        <div class="dpad-row">
+            <div class="control-button" id="up-button">&#9650;</div>
+        </div>
+        <div class="dpad-row">
+            <div class="control-button" id="left-button">&#9664;</div>
+            <div class="control-button" id="down-button">&#9660;</div>
+            <div class="control-button" id="right-button">&#9654;</div>
+            <div class="control-button" id="action-button">E</div>
+        </div>
+    </div>
 
     <script>
         // === КОНСТАНТЫ И ОСНОВНЫЕ НАСТРОЙКИ ИГРЫ ===
@@ -45,19 +125,29 @@
         let lastFrameTime = 0;
         let accumulator = 0;
 
+        // === ПИКСЕЛЬНЫЕ СПРАЙТЫ ===
+        // Простой спрайт игрока (2x3 GRID_SIZE пикселя)
+        // Каждый элемент - это цвет пикселя. 'T' - прозрачный.
+        const playerSprite = [
+            ['T', '#6F4E37', '#6F4E37', 'T'], // Голова (коричневая)
+            ['T', '#FFD700', '#FFD700', 'T'], // Кожа (желтая/кремовая)
+            ['#0000FF', '#0000FF', '#0000FF', '#0000FF'], // Рубашка (синяя)
+            ['#0000FF', '#0000FF', '#0000FF', '#0000FF'], // Рубашка (синяя)
+            ['#00008B', '#00008B', '#00008B', '#00008B'], // Ноги (темно-синие)
+            ['#00008B', '#00008B', '#00008B', '#00008B']  // Ноги (темно-синие)
+        ];
+
         // === ИГРОВОЕ СОСТОЯНИЕ ===
         const gameState = {
             player: {
                 x: 5 * GRID_SIZE,
                 y: 5 * GRID_SIZE,
-                width: GRID_SIZE,
-                height: GRID_SIZE * 2, // Персонаж чуть выше
-                speed: GRID_SIZE * 2, // Скорость в пикселях/секунду
-                direction: 'down', // Куда смотрит персонаж
+                width: GRID_SIZE * 2, // Ширина спрайта
+                height: GRID_SIZE * 3, // Высота спрайта
+                speed: GRID_SIZE * 2.5, // Скорость в пикселях/секунду
+                direction: 'down', // Куда смотрит персонаж (для будущих анимаций)
                 isMoving: false,
-                color: '#00F', // Синий квадрат для игрока
             },
-            // Здесь будут храниться деньги, продукты, день и другие глобальные параметры
             money: 1000,
             day: 1,
             popularity: 50, // Из 100
@@ -65,14 +155,77 @@
                 buns: 10,
                 patties: 10,
                 veggies: 10,
+                burgers: 0, // Приготовленные бургеры
             },
-            keys: {}, // Для отслеживания нажатых клавиш
+            keys: {}, // Для отслеживания нажатых клавиш (клавиатура)
+            touchKeys: {}, // Для отслеживания нажатых кнопок (тачскрин)
+
+            cafeLayout: {
+                // Все координаты и размеры в единицах GRID_SIZE
+                // Зоны пола
+                kitchen_floor: { x: 0, y: 0, width: 10, height: 8, color: '#A0522D', label: 'Кухня' }, // Коричневый
+                service_counter_area: { x: 10, y: 3, width: 2, height: 5, color: '#8B4513', label: 'Стойка выдачи' }, // Темно-коричневый
+                dining_area_floor: { x: 12, y: 0, width: 13, height: 18, color: '#D2B48C', label: 'Обеденный зал' }, // Светло-коричневый
+                storage_floor: { x: 0, y: 8, width: 6, height: 10, color: '#696969', label: 'Склад/Компьютер' }, // Серый
+                entrance_floor: { x: 10, y: 15, width: 2, height: 3, color: '#ADD8E6', label: 'Вход' }, // Голубой (для клиентов)
+
+                // Мебель и объекты
+                stove: { x: 1 * GRID_SIZE, y: 1 * GRID_SIZE, width: 2 * GRID_SIZE, height: 2 * GRID_SIZE, color: '#555', label: 'Плита', details: ['#777', '#444', '#777', '#444'] },
+                prepStation: { x: 4 * GRID_SIZE, y: 1 * GRID_SIZE, width: 3 * GRID_SIZE, height: 2 * GRID_SIZE, color: '#A8A8A8', label: 'Стол готовки', details: ['#BBB', '#999'] },
+                computer_desk: { x: 0.5 * GRID_SIZE, y: 8.5 * GRID_SIZE, width: 1.5 * GRID_SIZE, height: 1.5 * GRID_SIZE, color: '#333', label: 'Компьютерный стол' },
+                computer_monitor: { x: 0.6 * GRID_SIZE, y: 8.6 * GRID_SIZE, width: 0.8 * GRID_SIZE, height: 0.8 * GRID_SIZE, color: '#000', label: 'Монитор' },
+                service_counter_top: { x: 10 * GRID_SIZE, y: 3 * GRID_SIZE, width: 2 * GRID_SIZE, height: 1 * GRID_SIZE, color: '#4CAF50', label: 'Стойка' }, // Зеленая столешница
+                
+                // Столы (столешницы и стулья)
+                table1: { x: 13 * GRID_SIZE, y: 2 * GRID_SIZE, width: 2 * GRID_SIZE, height: 1.5 * GRID_SIZE, color: '#8B4513', label: 'Стол 1' },
+                chair1a: { x: 13 * GRID_SIZE, y: 1 * GRID_SIZE, width: 0.8 * GRID_SIZE, height: 0.8 * GRID_SIZE, color: '#D2B48C', label: 'Стул' },
+                chair1b: { x: 14.2 * GRID_SIZE, y: 1 * GRID_SIZE, width: 0.8 * GRID_SIZE, height: 0.8 * GRID_SIZE, color: '#D2B48C', label: 'Стул' },
+                chair1c: { x: 13 * GRID_SIZE, y: 3.5 * GRID_SIZE, width: 0.8 * GRID_SIZE, height: 0.8 * GRID_SIZE, color: '#D2B48C', label: 'Стул' },
+                chair1d: { x: 14.2 * GRID_SIZE, y: 3.5 * GRID_SIZE, width: 0.8 * GRID_SIZE, height: 0.8 * GRID_SIZE, color: '#D2B48C', label: 'Стул' },
+            },
+            
+            // Массив для отслеживания интерактивных объектов
+            interactiveObjects: [
+                {
+                    type: 'computer',
+                    x: 0.6 * GRID_SIZE, y: 8.6 * GRID_SIZE,
+                    width: 0.8 * GRID_SIZE, height: 0.8 * GRID_SIZE,
+                    action: 'openShopMenu',
+                    label: 'Компьютер (E)',
+                },
+                {
+                    type: 'stove',
+                    x: 1 * GRID_SIZE, y: 1 * GRID_SIZE,
+                    width: 2 * GRID_SIZE, height: 2 * GRID_SIZE,
+                    action: 'cookBurger',
+                    label: 'Плита (E)',
+                },
+                // Зона выдачи готовых бургеров (пока заглушка)
+                {
+                    type: 'service_counter_delivery',
+                    x: 10 * GRID_SIZE, y: 3 * GRID_SIZE,
+                    width: 2 * GRID_SIZE, height: 1 * GRID_SIZE,
+                    action: 'serveCustomer',
+                    label: 'Выдача (E)',
+                },
+            ],
+            currentInteraction: null, // Хранит объект, с которым игрок взаимодействует
+            showShopMenu: false, // Флаг для отображения меню магазина
         };
 
-        // === ОБРАБОТКА ВВОДА ===
+        // === ОБРАБОТКА ВВОДА (Клавиатура и Тачскрин) ===
+
+        // Обработка клавиатуры
         document.addEventListener('keydown', (e) => {
             gameState.keys[e.code] = true;
-            gameState.player.isMoving = true;
+            // Движение игрока
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyA', 'KeyD'].includes(e.code)) {
+                gameState.player.isMoving = true;
+            }
+            // Взаимодействие (клавиша 'E' или 'Пробел')
+            if (e.code === 'KeyE' || e.code === 'Space') {
+                handleInteraction();
+            }
         });
 
         document.addEventListener('keyup', (e) => {
@@ -86,30 +239,94 @@
             }
         });
 
-        // === ФУНКЦИИ ИГРОВОГО ЦИКЛА ===
+        // Обработка тач-кнопок
+        const controlButtons = document.querySelectorAll('.control-button');
+        controlButtons.forEach(button => {
+            button.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Предотвращает прокрутку и зум
+                button.classList.add('active'); // Визуальное состояние нажатия
+                handleTouchButton(button.id, true);
+            }, { passive: false }); // { passive: false } для preventDefault
+            button.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                button.classList.remove('active');
+                handleTouchButton(button.id, false);
+            });
+            button.addEventListener('touchcancel', (e) => { // Если палец соскользнул
+                e.preventDefault();
+                button.classList.remove('active');
+                handleTouchButton(button.id, false);
+            });
+        });
+
+        function handleTouchButton(buttonId, isPressed) {
+            let keyToPress = '';
+            switch (buttonId) {
+                case 'up-button': keyToPress = 'ArrowUp'; break;
+                case 'down-button': keyToPress = 'ArrowDown'; break;
+                case 'left-button': keyToPress = 'ArrowLeft'; break;
+                case 'right-button': keyToPress = 'ArrowRight'; break;
+                case 'action-button': keyToPress = 'KeyE'; break;
+            }
+
+            if (keyToPress) {
+                gameState.touchKeys[keyToPress] = isPressed;
+                if (isPressed && keyToPress === 'KeyE') {
+                    handleInteraction(); // Вызываем взаимодействие по тапу
+                }
+                // Обновляем состояние движения игрока на основе тач-кнопок
+                const anyTouchMoveKeyPressed = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].some(key => gameState.touchKeys[key]);
+                const anyKeyboardMoveKeyPressed = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyA', 'KeyD'].some(key => gameState.keys[key]);
+                gameState.player.isMoving = anyTouchMoveKeyPressed || anyKeyboardMoveKeyPressed;
+            }
+        }
+
+        // Общая функция для обработки взаимодействия (вызывается из клавиатуры и тача)
+        function handleInteraction() {
+            if (gameState.currentInteraction) {
+                console.log(`Взаимодействие с: ${gameState.currentInteraction.label}`);
+                if (gameState.currentInteraction.action === 'openShopMenu') {
+                    gameState.showShopMenu = !gameState.showShopMenu; 
+                } else if (gameState.currentInteraction.action === 'cookBurger') {
+                    cookBurger();
+                } else if (gameState.currentInteraction.action === 'serveCustomer') {
+                    console.log('Попытка обслужить клиента...');
+                }
+            }
+        }
+
+        // === ИГРОВЫЕ ФУНКЦИИ (ЛОГИКА) ===
 
         /**
          * Обновляет состояние игры (логику, физику и т.д.)
          * @param {number} deltaTime - Время в секундах, прошедшее с последнего обновления.
          */
         function update(deltaTime) {
-            // Движение игрока
+            // Если открыто меню магазина, игрок не должен двигаться и никакой другой логики не должно происходить
+            if (gameState.showShopMenu) {
+                gameState.player.isMoving = false; // Убедиться, что игрок не движется
+                return; 
+            }
+
+            // Движение игрока (комбинированный ввод с клавиатуры и тачскрина)
             let dx = 0;
             let dy = 0;
 
-            if (gameState.keys['ArrowUp'] || gameState.keys['KeyW']) {
+            const currentKeys = { ...gameState.keys, ...gameState.touchKeys }; // Объединяем состояния
+
+            if (currentKeys['ArrowUp'] || currentKeys['KeyW']) {
                 dy -= 1;
                 gameState.player.direction = 'up';
             }
-            if (gameState.keys['ArrowDown'] || gameState.keys['KeyS']) {
+            if (currentKeys['ArrowDown'] || currentKeys['KeyS']) {
                 dy += 1;
                 gameState.player.direction = 'down';
             }
-            if (gameState.keys['ArrowLeft'] || gameState.keys['KeyA']) {
+            if (currentKeys['ArrowLeft'] || currentKeys['KeyA']) {
                 dx -= 1;
                 gameState.player.direction = 'left';
             }
-            if (gameState.keys['ArrowRight'] || gameState.keys['KeyD']) {
+            if (currentKeys['ArrowRight'] || currentKeys['KeyD']) {
                 dx += 1;
                 gameState.player.direction = 'right';
             }
@@ -128,8 +345,150 @@
             gameState.player.x = Math.max(0, Math.min(CANVAS_WIDTH - gameState.player.width, gameState.player.x));
             gameState.player.y = Math.max(0, Math.min(CANVAS_HEIGHT - gameState.player.height, gameState.player.y));
 
+            // Проверка на взаимодействие с объектами
+            gameState.currentInteraction = null; // Сбрасываем текущее взаимодействие
+            for (const obj of gameState.interactiveObjects) {
+                // Простая проверка на столкновение (Bounding Box Collision)
+                if (gameState.player.x < obj.x + obj.width &&
+                    gameState.player.x + gameState.player.width > obj.x &&
+                    gameState.player.y < obj.y + obj.height &&
+                    gameState.player.y + gameState.player.height > obj.y) {
+                    gameState.currentInteraction = obj;
+                    break; // Взаимодействуем только с одним объектом за раз
+                }
+            }
+
             // Логика для других игровых элементов (НПС, клиенты, взаимодействия) будет здесь
         }
+
+        /**
+         * Функция для покупки ингредиентов
+         * @param {string} itemType - Тип ингредиента (buns, patties, veggies)
+         * @param {number} quantity - Количество для покупки
+         */
+        function buyIngredient(itemType, quantity) {
+            const prices = {
+                buns: 5,
+                patties: 10,
+                veggies: 3,
+            };
+            const cost = prices[itemType] * quantity;
+
+            if (gameState.money >= cost) {
+                gameState.money -= cost;
+                gameState.ingredients[itemType] += quantity;
+                console.log(`Куплено ${quantity} ${itemType}. Остаток денег: ${gameState.money}`);
+            } else {
+                console.log('Недостаточно денег для покупки!');
+            }
+        }
+
+        /**
+         * Функция для готовки бургера
+         */
+        function cookBurger() {
+            // Требуется: 1 булка, 1 котлета, 1 овощ
+            if (gameState.ingredients.buns >= 1 && gameState.ingredients.patties >= 1 && gameState.ingredients.veggies >= 1) {
+                gameState.ingredients.buns--;
+                gameState.ingredients.patties--;
+                gameState.ingredients.veggies--;
+                gameState.ingredients.burgers++; // Добавляем готовый бургер
+                console.log('Бургер приготовлен!');
+            } else {
+                console.log('Недостаточно ингредиентов для бургера!');
+            }
+        }
+
+
+        // === ФУНКЦИИ ОТРОВКИ (ГРАФИКА) ===
+
+        /**
+         * Универсальная функция для отрисовки пиксельного спрайта из 2D массива.
+         * @param {CanvasRenderingContext2D} ctx - Контекст Canvas.
+         * @param {Array<Array<string>>} spriteData - 2D массив цветов спрайта (например, ['#FF0000', 'T']). 'T' для прозрачного.
+         * @param {number} x - X-координата начала отрисовки.
+         * @param {number} y - Y-координата начала отрисовки.
+         * @param {number} pixelSize - Размер одного "пикселя" спрайта в реальных пикселях Canvas.
+         */
+        function drawPixelSprite(ctx, spriteData, x, y, pixelSize) {
+            for (let row = 0; row < spriteData.length; row++) {
+                for (let col = 0; col < spriteData[row].length; col++) {
+                    const color = spriteData[row][col];
+                    if (color !== 'T') { // Пропускаем прозрачные пиксели
+                        ctx.fillStyle = color;
+                        ctx.fillRect(x + col * pixelSize, y + row * pixelSize, pixelSize, pixelSize);
+                    }
+                }
+            }
+        }
+
+        /**
+         * Отрисовывает основные зоны кафе и мебель с пиксельными деталями.
+         */
+        function drawCafeLayout() {
+            // Отрисовка пола (базовый цвет)
+            CTX.fillStyle = '#333';
+            CTX.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // Отрисовка зон (полов)
+            for (const key in gameState.cafeLayout) {
+                const zone = gameState.cafeLayout[key];
+                if (key.endsWith('_floor') || key.endsWith('_area') || key.endsWith('_counter_area') || key.endsWith('_entrance')) {
+                    CTX.fillStyle = zone.color;
+                    CTX.fillRect(zone.x * GRID_SIZE, zone.y * GRID_SIZE, zone.width * GRID_SIZE, zone.height * GRID_SIZE);
+                }
+            }
+            
+            // Добавим текстуры или узоры на полы для большего пиксель-арта
+            // Пример: клетчатый пол в обеденном зале
+            CTX.fillStyle = '#A98D65'; // Более темный оттенок
+            for (let i = gameState.cafeLayout.dining_area_floor.x; i < gameState.cafeLayout.dining_area_floor.x + gameState.cafeLayout.dining_area_floor.width; i++) {
+                for (let j = gameState.cafeLayout.dining_area_floor.y; j < gameState.cafeLayout.dining_area_floor.y + gameState.cafeLayout.dining_area_floor.height; j++) {
+                    if ((i + j) % 2 === 0) {
+                        CTX.fillRect(i * GRID_SIZE, j * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+                    }
+                }
+            }
+
+            // Отрисовка мебели и объектов
+            CTX.strokeStyle = '#444'; // Цвет для границ объектов
+            CTX.lineWidth = 1;
+            for (const key in gameState.cafeLayout) {
+                const obj = gameState.cafeLayout[key];
+                // Пропускаем объекты, которые уже отрисованы как "пол"
+                if (key.endsWith('_floor') || key.endsWith('_area') || key.endsWith('_counter_area') || key.endsWith('_entrance')) {
+                    continue;
+                }
+
+                CTX.fillStyle = obj.color;
+                CTX.fillRect(obj.x, obj.y, obj.width, obj.height);
+                CTX.strokeRect(obj.x, obj.y, obj.width, obj.height); // Обводка для пиксельности
+
+                // Детали для плиты
+                if (key === 'stove' && obj.details) {
+                    CTX.fillStyle = obj.details[0]; // Первый цвет для конфорок
+                    CTX.fillRect(obj.x + GRID_SIZE * 0.2, obj.y + GRID_SIZE * 0.2, GRID_SIZE * 0.6, GRID_SIZE * 0.6);
+                    CTX.fillRect(obj.x + GRID_SIZE * 1.2, obj.y + GRID_SIZE * 0.2, GRID_SIZE * 0.6, GRID_SIZE * 0.6);
+                    CTX.fillRect(obj.x + GRID_SIZE * 0.2, obj.y + GRID_SIZE * 1.2, GRID_SIZE * 0.6, GRID_SIZE * 0.6);
+                    CTX.fillRect(obj.x + GRID_SIZE * 1.2, obj.y + GRID_SIZE * 1.2, GRID_SIZE * 0.6, GRID_SIZE * 0.6);
+                }
+                // Детали для компьютерного стола/монитора
+                if (key === 'computer_monitor') {
+                    CTX.fillStyle = '#0F0'; // Включенный экран
+                    CTX.fillRect(obj.x + GRID_SIZE * 0.1, obj.y + GRID_SIZE * 0.1, obj.width - GRID_SIZE * 0.2, obj.height - GRID_SIZE * 0.2);
+                }
+
+                // Выделение интерактивных объектов
+                if (gameState.interactiveObjects.some(io => io.x === obj.x && io.y === obj.y && io.type !== 'service_counter_delivery')) { // service_counter_delivery - это зона, не отдельный объект
+                    CTX.strokeStyle = '#FFF'; // Белая рамка для интерактивных
+                    CTX.lineWidth = 2;
+                    CTX.strokeRect(obj.x, obj.y, obj.width, obj.height);
+                    CTX.lineWidth = 1; // Возвращаем стандарт
+                    CTX.strokeStyle = '#444';
+                }
+            }
+        }
+
 
         /**
          * Отрисовывает все игровые элементы на Canvas.
@@ -138,21 +497,31 @@
             // Очищаем Canvas перед каждой отрисовкой
             CTX.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-            // Рисуем игрока (простой квадрат для начала)
-            CTX.fillStyle = gameState.player.color;
-            CTX.fillRect(gameState.player.x, gameState.player.y, gameState.player.width, gameState.player.height);
+            // Рисуем макет кафе (полы, стены, мебель)
+            drawCafeLayout();
 
-            // Здесь будет отрисовка кафе, стен, мебели, клиентов, еды и т.д.
-            // Например, сетка для пиксельного стиля:
-            CTX.strokeStyle = '#444';
-            for (let i = 0; i < CANVAS_WIDTH / GRID_SIZE; i++) {
-                for (let j = 0; j < CANVAS_HEIGHT / GRID_SIZE; j++) {
-                    CTX.strokeRect(i * GRID_SIZE, j * GRID_SIZE, GRID_SIZE, GRID_SIZE);
-                }
+            // Рисуем игрока с помощью спрайта
+            drawPixelSprite(CTX, playerSprite, gameState.player.x, gameState.player.y, GRID_SIZE / 2); // Размер пикселя для спрайта
+
+            // Отрисовка подсказки для взаимодействия
+            if (gameState.currentInteraction && !gameState.showShopMenu) {
+                CTX.fillStyle = '#FFF';
+                CTX.font = `bold ${GRID_SIZE - 4}px monospace`;
+                CTX.textAlign = 'center';
+                CTX.textBaseline = 'bottom';
+                // Подсказка над объектом
+                CTX.fillText(`${gameState.currentInteraction.label}`, 
+                    gameState.currentInteraction.x + gameState.currentInteraction.width / 2, 
+                    gameState.currentInteraction.y - 2);
             }
 
-            // Рисуем UI (позже)
+            // Рисуем UI
             drawUI();
+            
+            // Если меню магазина открыто, рисуем его поверх всего
+            if (gameState.showShopMenu) {
+                drawShopMenu();
+            }
         }
 
         /**
@@ -160,15 +529,131 @@
          */
         function drawUI() {
             CTX.fillStyle = '#EEE';
-            CTX.font = `bold ${GRID_SIZE - 2}px monospace`; // Pixel font, adjust size
+            CTX.font = `bold ${GRID_SIZE - 2}px 'Press Start 2P', monospace`; 
             CTX.textAlign = 'left';
             CTX.textBaseline = 'top';
 
             CTX.fillText(`Деньги: $${gameState.money}`, GRID_SIZE / 2, GRID_SIZE / 2);
             CTX.fillText(`День: ${gameState.day}`, GRID_SIZE / 2, GRID_SIZE / 2 + GRID_SIZE);
             CTX.fillText(`Популярность: ${gameState.popularity}%`, GRID_SIZE / 2, GRID_SIZE / 2 + GRID_SIZE * 2);
-            CTX.fillText(`Ингредиенты: Б-${gameState.ingredients.buns} К-${gameState.ingredients.patties} О-${gameState.ingredients.veggies}`, GRID_SIZE / 2, GRID_SIZE / 2 + GRID_SIZE * 3);
+            CTX.fillText(`Ингредиенты: Б-${gameState.ingredients.buns} К-${gameState.ingredients.patties} О-${gameState.ingredients.veggies} Брг-${gameState.ingredients.burgers}`, GRID_SIZE / 2, GRID_SIZE / 2 + GRID_SIZE * 3);
         }
+        
+        /**
+         * Отрисовывает меню магазина для закупки ингредиентов.
+         */
+        function drawShopMenu() {
+            const menuWidth = CANVAS_WIDTH * 0.7;
+            const menuHeight = CANVAS_HEIGHT * 0.8; // Чуть больше для товаров
+            const menuX = (CANVAS_WIDTH - menuWidth) / 2;
+            const menuY = (CANVAS_HEIGHT - menuHeight) / 2;
+
+            // Фон меню
+            CTX.fillStyle = 'rgba(0, 0, 0, 0.9)'; // Более темный фон
+            CTX.fillRect(menuX, menuY, menuWidth, menuHeight);
+            CTX.strokeStyle = '#FFF';
+            CTX.lineWidth = 2;
+            CTX.strokeRect(menuX, menuY, menuWidth, menuHeight);
+
+            // Заголовок
+            CTX.fillStyle = '#FFF';
+            CTX.font = `bold ${GRID_SIZE * 1.2}px 'Press Start 2P', monospace`;
+            CTX.textAlign = 'center';
+            CTX.fillText('Магазин Ингредиентов', CANVAS_WIDTH / 2, menuY + GRID_SIZE * 1.5);
+            
+            // Информация о текущих деньгах
+            CTX.font = `${GRID_SIZE - 4}px 'Press Start 2P', monospace`;
+            CTX.fillText(`Ваши деньги: $${gameState.money}`, CANVAS_WIDTH / 2, menuY + GRID_SIZE * 2.5);
+
+            // Список товаров
+            const items = [
+                { type: 'buns', label: 'Булочки', price: 5, quantity: 1, current: gameState.ingredients.buns },
+                { type: 'patties', label: 'Котлеты', price: 10, quantity: 1, current: gameState.ingredients.patties },
+                { type: 'veggies', label: 'Овощи', price: 3, quantity: 1, current: gameState.ingredients.veggies },
+            ];
+
+            let startY = menuY + GRID_SIZE * 4;
+            const itemHeight = GRID_SIZE * 1.5;
+            const buttonWidth = GRID_SIZE * 2.5;
+            const buttonHeight = GRID_SIZE * 1;
+            
+            items.forEach((item, index) => {
+                const itemY = startY + index * itemHeight;
+                CTX.textAlign = 'left';
+                CTX.font = `${GRID_SIZE - 2}px 'Press Start 2P', monospace`;
+                CTX.fillText(`${item.label} (${item.current})`, menuX + GRID_SIZE, itemY);
+                CTX.fillText(`$${item.price} / шт.`, menuX + GRID_SIZE * 7, itemY);
+
+                // Кнопка "Купить"
+                const buyButtonX = menuX + menuWidth - GRID_SIZE - buttonWidth;
+                const buyButtonY = itemY - GRID_SIZE * 0.8;
+                
+                // Рисуем кнопку как прямоугольник
+                CTX.fillStyle = gameState.money >= item.price * item.quantity ? '#28A745' : '#6C757D'; // Зеленый если можно купить, серый иначе
+                CTX.fillRect(buyButtonX, buyButtonY, buttonWidth, buttonHeight);
+                CTX.strokeStyle = '#FFF';
+                CTX.strokeRect(buyButtonX, buyButtonY, buttonWidth, buttonHeight);
+
+                CTX.fillStyle = '#FFF';
+                CTX.textAlign = 'center';
+                CTX.font = `${GRID_SIZE - 4}px 'Press Start 2P', monospace`;
+                CTX.fillText('Купить', buyButtonX + buttonWidth / 2, buyButtonY + buttonHeight * 0.7);
+
+                // Добавляем кликабельную зону для кнопки покупки
+                // (Это только для отрисовки, фактические клики обрабатываются в обработчике touch/mouse)
+                // Для мобильных, нам нужно будет обрабатывать тапы по этим координатам
+            });
+
+            // Инструкция для выхода
+            CTX.fillStyle = '#FFF';
+            CTX.font = `${GRID_SIZE - 4}px 'Press Start 2P', monospace`;
+            CTX.textAlign = 'center';
+            CTX.fillText('Нажмите E или "E" кнопку для выхода', CANVAS_WIDTH / 2, menuY + menuHeight - GRID_SIZE * 1.5);
+        }
+
+        // Обработчик кликов/тапов для кнопок в меню магазина
+        CANVAS.addEventListener('click', (e) => {
+            if (!gameState.showShopMenu) return;
+
+            const rect = CANVAS.getBoundingClientRect();
+            const scaleX = CANVAS.width / rect.width;
+            const scaleY = CANVAS.height / rect.height;
+            const clientX = (e.clientX - rect.left) * scaleX;
+            const clientY = (e.clientY - rect.top) * scaleY;
+
+            // Координаты меню
+            const menuWidth = CANVAS_WIDTH * 0.7;
+            const menuHeight = CANVAS_HEIGHT * 0.8;
+            const menuX = (CANVAS_WIDTH - menuWidth) / 2;
+            const menuY = (CANVAS_HEIGHT - menuHeight) / 2;
+
+            const items = [
+                { type: 'buns', label: 'Булочки', price: 5, quantity: 1, current: gameState.ingredients.buns },
+                { type: 'patties', label: 'Котлеты', price: 10, quantity: 1, current: gameState.ingredients.patties },
+                { type: 'veggies', label: 'Овощи', price: 3, quantity: 1, current: gameState.ingredients.veggies },
+            ];
+
+            let startY = menuY + GRID_SIZE * 4;
+            const itemHeight = GRID_SIZE * 1.5;
+            const buttonWidth = GRID_SIZE * 2.5;
+            const buttonHeight = GRID_SIZE * 1;
+
+            items.forEach((item, index) => {
+                const itemY = startY + index * itemHeight;
+                const buyButtonX = menuX + menuWidth - GRID_SIZE - buttonWidth;
+                const buyButtonY = itemY - GRID_SIZE * 0.8;
+
+                // Проверяем, был ли клик по кнопке "Купить"
+                if (clientX >= buyButtonX && clientX <= buyButtonX + buttonWidth &&
+                    clientY >= buyButtonY && clientY <= buyButtonY + buttonHeight) {
+                    if (gameState.money >= item.price * item.quantity) {
+                        buyIngredient(item.type, item.quantity);
+                    } else {
+                        console.log('Недостаточно денег!');
+                    }
+                }
+            });
+        });
 
 
         /**
