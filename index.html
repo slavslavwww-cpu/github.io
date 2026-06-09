@@ -3,28 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ruru Burger - Pixel Edition</title>
+    <title>Ruru Burger - Arcade Edition</title>
     <style>
         body {
             font-family: 'Courier New', Courier, monospace;
-            background-color: #1a1a24;
+            background-color: #111116;
             color: #fff;
             margin: 0;
             padding: 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            user-select: none;
         }
         .game-title {
             color: #f1c40f;
-            text-shadow: 3px 3px #d35400;
-            margin: 5px 0;
-            font-size: 2em;
+            text-shadow: 2px 2px #d35400;
+            margin: 5px 0 0 0;
+            font-size: 1.8em;
+        }
+        .instructions {
+            color: #bdc3c7;
+            font-size: 0.9em;
+            margin-bottom: 10px;
             text-align: center;
         }
         .stats-bar {
             display: flex;
-            width: 800px;
+            width: 850px;
             justify-content: space-between;
             background: #2c3e50;
             border: 4px solid #f1c40f;
@@ -38,251 +44,237 @@
             border: 4px solid #fff;
             display: block;
             image-rendering: pixelated;
-            margin: 10px 0;
         }
-        .controls {
-            display: flex;
-            width: 800px;
-            gap: 10px;
-        }
-        .btn {
-            flex: 1;
-            background: #e67e22;
-            border: 4px solid #d35400;
-            color: white;
-            padding: 12px;
-            font-family: inherit;
-            font-size: 1em;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .btn:hover { background: #d35400; }
-        .btn:disabled {
-            background: #7f8c8d;
-            border-color: #bdc3c7;
-            cursor: not-allowed;
-        }
-        #btn-work { background: #2ecc71; border-color: #27ae60; }
-        #btn-work:hover { background: #27ae60; }
-        .log-box {
-            width: 800px;
-            height: 90px;
-            background: #000;
-            border: 3px solid #7f8c8d;
-            padding: 8px;
-            box-sizing: border-box;
-            overflow-y: auto;
+        .tip {
+            margin-top: 5px;
             color: #2ecc71;
-            font-size: 0.85em;
+            font-size: 0.9em;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-<h1 class="game-title">🍔 Ruru Burger: Pixel Life 🍔</h1>
+<h1 class="game-title">🍔 Ruru Burger: Arcade Version 🍔</h1>
+<div class="instructions">Управление Зигги: <b>Стрелки Влево/Вправо</b> — ходить | <b>Пробел</b> — взять/положить/купить</div>
 
-<!-- Панель игровых данных -->
 <div class="stats-bar">
     <div>💵 Деньги: <span id="ui-money">100</span>$</div>
-    <div>🥩 Склад котлет: <span id="ui-meat">5</span> шт.</div>
+    <div>🥩 В холодильнике: <span id="ui-meat">5</span> шт.</div>
     <div>⭐ Уровень Кафе: <span id="ui-level">1</span></div>
 </div>
 
-<!-- Игровой экран для анимаций -->
-<canvas id="gameCanvas" width="800" height="300"></canvas>
-
-<!-- Кнопки действий -->
-<div class="controls">
-    <button class="btn" id="btn-buy" onclick="triggerBuy()">Закупка мяса (-<span id="cost-buy">10</span>$)</button>
-    <button class="btn" id="btn-upgrade" onclick="triggerUpgrade()">Апгрейд кафе (-<span id="cost-up">50</span>$)</button>
-    <button class="btn" id="btn-work" onclick="triggerWork()">🏪 Открыть на вечер!</button>
-</div>
-
-<!-- Лог событий -->
-<p style="margin: 5px 0 2px 0; font-size: 0.9em; color: #bdc3c7;">Лента событий кафе:</p>
-<div class="log-box" id="log">Добро пожаловать в Ruru Burger! Боб и Зигги готовы к работе.</div>
+<canvas id="gameCanvas" width="850" height="320"></canvas>
+<div class="tip" id="action-tip">Подсказка: Идите к грузовику слева для закупки мяса!</div>
 
 <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    // Главное состояние игры
+    // Базовые данные игры
     let game = {
         money: 100,
-        meat: 5,
+        fridgeMeat: 5,
         level: 1,
-        buyCost: 10,
-        upCost: 50,
-        incomeRate: 15,
-        status: 'idle', // 'idle', 'buying', 'working'
-        timer: 0
+        meatCost: 10,
+        upgradeCost: 60,
+        burgerPrice: 15
     };
 
-    // Объекты персонажей и окружения
-    let bob = { x: 320, y: 190, frame: 0, dir: 1, targetX: 320, action: 'idle' };
-    let ziggy = { x: 450, y: 170, frame: 0, dir: 1, targetX: 450, hasBox: false, action: 'idle' };
-    let customers = [];
+    // Главный герой (Зигги), которым мы управляем
+    let ziggy = {
+        x: 350,
+        y: 200,
+        speed: 4,
+        dir: 1,
+        frame: 0,
+        isMoving: false,
+        carrying: 'nothing' // 'nothing', 'meat_box', 'burger'
+    };
+
+    // Боб (повар, работает сам)
+    let bob = {
+        x: 650,
+        y: 220,
+        state: 'idle', // 'idle', 'cooking'
+        timer: 0,
+        progress: 0
+    };
+
+    // Объекты на локации (координаты X для взаимодействия)
+    const TRIGGER_TRUCK = 70;      // Закупка у грузовика
+    const TRIGGER_FRIDGE = 580;    // Холодильник для сырого мяса
+    const TRIGGER_COUNTER = 480;   // Прилавок (куда Боб кладет бургеры, и касса для апгрейда)
+    const TRIGGER_TABLE = 240;     // Стол гостей
+
+    // Гости и прилавок
+    let counterBurgers = 0; // Сколько готовых бургеров лежит на выдаче
+    let guest = {
+        state: 'none', // 'none', 'waiting', 'eating', 'leaving_money'
+        timer: 0,
+        patience: 100,
+        moneyOnTable: 0
+    };
+
+    // Дым от плиты
     let particles = [];
 
-    // Цвета интерьера в зависимости от уровня
-    const themeColors = [
-        { wall: '#34495e', floor: '#2c3e50', table: '#a0522d' }, // Левел 1
-        { wall: '#4a6572', floor: '#34495e', table: '#cd853f' }, // Левел 2
-        { wall: '#234e40', floor: '#1c3d32', table: '#d2b48c' }, // Левел 3
-        { wall: '#5b3256', floor: '#42243e', table: '#f1c40f' }  // Левел 4+ (Золотые столы!)
-    ];
+    // Кнопки управления
+    let keys = {};
+    window.addEventListener('keydown', e => { keys[e.code] = true; if(e.code === 'Space') handleAction(); });
+    window.addEventListener('keyup', e => keys[e.code] = false);
 
-    function getColors() {
-        let idx = Math.min(game.level - 1, themeColors.length - 1);
-        return themeColors[idx];
-    }
-
-    // --- ФУНКЦИИ РИСОВАНИЯ ПИКСЕЛЬ-АРТА ---
-
-    // Рисуем маленького бородатого Боба
-    function drawBob(x, y, frame) {
-        let bobY = y + (frame % 2 * 2); // Эффект покачивания при шаге
-        ctx.fillStyle = '#f39c12'; // Рыжая борода
-        ctx.fillRect(x - 6, bobY + 4, 14, 12);
-        ctx.fillStyle = '#ffdbac'; // Кожа
-        ctx.fillRect(x - 4, bobY - 2, 10, 8);
-        ctx.fillStyle = '#fff';    // Поварской колпак
-        ctx.fillRect(x - 5, bobY - 14, 12, 12);
-        ctx.fillStyle = '#7f8c8d'; // Фартук
-        ctx.fillRect(x - 6, bobY + 12, 14, 14);
-        ctx.fillStyle = '#000';    // Глаза
-        ctx.fillRect(x + (bob.dir > 0 ? 2 : -4), bobY, 2, 2);
-    }
-
-    // Рисуем длинного худого Зигги
-    function drawZiggy(x, y, frame) {
-        let zigY = y + (frame % 2 * 3);
-        ctx.fillStyle = '#9b59b6'; // Фиолетовая длинная рубашка
-        ctx.fillRect(x - 3, zigY, 8, 28);
-        ctx.fillStyle = '#ffdbac'; // Кожа лица
-        ctx.fillRect(x - 3, zigY - 12, 8, 12);
-        ctx.fillStyle = '#2c3e50'; // Темные брюки (длинные ноги)
-        ctx.fillRect(x - 3, zigY + 28, 3, 16);
-        ctx.fillRect(x + 2, zigY + 28, 3, 16);
-        ctx.fillStyle = '#34495e'; // Стильная прическа
-        ctx.fillRect(x - 4, zigY - 16, 10, 5);
-        ctx.fillStyle = '#000';    // Глаза
-        ctx.fillRect(x + (ziggy.dir > 0 ? 2 : -3), zigY - 8, 2, 2);
-
-        // Если несёт закупленный товар
-        if (ziggy.hasBox) {
-            ctx.fillStyle = '#d35400';
-            ctx.fillRect(x + (ziggy.dir > 0 ? 4 : -14), zigY + 6, 12, 12);
-        }
-    }
-
-    // Рисование интерьера и элементов кафе
-    function drawScene() {
-        let colors = getColors();
-
-        // Небо снаружи (слева) и стена внутри
-        ctx.fillStyle = '#111';
-        ctx.fillRect(0, 0, 800, 300);
-        ctx.fillStyle = colors.wall;
-        ctx.fillRect(150, 20, 650, 210);
-
-        // Пол улицы и пол кафе
-        ctx.fillStyle = '#7f8c8d';
-        ctx.fillRect(0, 230, 150, 70);
-        ctx.fillStyle = colors.floor;
-        ctx.fillRect(150, 230, 650, 70);
-
-        // Дверь в кафе
-        ctx.fillStyle = '#7e5109';
-        ctx.fillRect(150, 110, 40, 120);
-        ctx.fillStyle = '#f1c40f';
-        ctx.fillRect(180, 165, 5, 10); // Ручка
-
-        // Грузовик снабжения (слева снаружи)
-        ctx.fillStyle = '#c0392b';
-        ctx.fillRect(10, 130, 90, 70);
-        ctx.fillStyle = '#f1c40f';
-        ctx.fillRect(100, 160, 20, 40); // Кабина
-        ctx.fillStyle = '#333';
-        ctx.fillRect(20, 195, 20, 20); // Колеса
-        ctx.fillRect(80, 195, 20, 20);
-
-        // Плита Боба (кухня справа)
-        ctx.fillStyle = '#7f8c8d';
-        ctx.fillRect(260, 160, 50, 70);
-        ctx.fillStyle = '#e74c3c'; // Раскаленная конфорка
-        ctx.fillRect(270, 157, 12, 4);
-        ctx.fillRect(290, 157, 12, 4);
-
-        // Вывеска Ruru Burger
-        ctx.fillStyle = '#000';
-        ctx.fillRect(350, 35, 200, 35);
-        ctx.strokeStyle = '#f1c40f';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(350, 35, 200, 35);
-        ctx.fillStyle = '#f1c40f';
-        ctx.font = 'bold 14px "Courier New"';
-        ctx.fillText(`RURU BURGER (Lvl ${game.level})`, 365, 57);
-
-        // Столы гостей (их количество и качество растет от уровня)
-        ctx.fillStyle = colors.table;
-        ctx.fillRect(480, 175, 55, 55); // Стол 1
-        if (game.level >= 2) ctx.fillRect(600, 175, 55, 55); // Стол 2
-        if (game.level >= 3) ctx.fillRect(710, 175, 55, 55); // Стол 3
-
-        // Праздничные гирлянды (для уровней 2+)
-        if (game.level >= 2) {
-            for (let i = 200; i < 750; i += 40) {
-                ctx.fillStyle = (i % 80 === 0) ? '#2ecc71' : '#f1c40f';
-                ctx.beginPath();
-                ctx.arc(i, 35, 4, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-    }
-
-    // Анимационные частицы (дым от жарки котлет)
-    function createSmoke(x, y) {
-        particles.push({ x: x, y: y, vx: (Math.random() - 0.5) * 1, vy: -Math.random() * 1.5 - 0.5, alpha: 1 });
-    }
-
-    function drawParticles() {
-        for (let i = particles.length - 1; i >= 0; i--) {
-            let p = particles[i];
-            p.x += p.vx;
-            p.y += p.vy;
-            p.alpha -= 0.02;
-            if (p.alpha <= 0) {
-                particles.splice(i, 1);
+    // Обработка нажатия на Пробел (Действия Зигги)
+    function handleAction() {
+        // 1. У грузовика (Закупка)
+        if (Math.abs(ziggy.x - TRIGGER_TRUCK) < 40 && ziggy.carrying === 'nothing') {
+            if (game.money >= game.meatCost) {
+                game.money -= game.meatCost;
+                ziggy.carrying = 'meat_box';
+                showTip("Вы взяли коробку мяса! Несите её в кафе к холодильнику.");
             } else {
-                ctx.fillStyle = `rgba(200, 200, 200, ${p.alpha})`;
-                ctx.fillRect(p.x, p.y, 6, 6);
+                showTip("Недостаточно денег для закупки мяса!");
             }
         }
+        
+        // 2. У холодильника (Разгрузка мяса)
+        else if (Math.abs(ziggy.x - TRIGGER_FRIDGE) < 30 && ziggy.carrying === 'meat_box') {
+            ziggy.carrying = 'nothing';
+            game.fridgeMeat++;
+            showTip("Мясо добавлено в холодильник. Боб может начинать готовить!");
+        }
+
+        // 3. У прилавка (Взять бургер или Апгрейд кафе)
+        else if (Math.abs(ziggy.x - TRIGGER_COUNTER) < 30) {
+            if (ziggy.carrying === 'nothing' && counterBurgers > 0) {
+                counterBurgers--;
+                ziggy.carrying = 'burger';
+                showTip("Вы взяли бургер! Отнесите его гостю за стол.");
+            } else if (ziggy.carrying === 'nothing' && counterBurgers === 0) {
+                // Если бургера нет, пробуем улучшить кафе
+                if (game.money >= game.upgradeCost) {
+                    game.money -= game.upgradeCost;
+                    game.level++;
+                    game.burgerPrice += 5;
+                    game.upgradeCost = Math.floor(game.upgradeCost * 1.7);
+                    showTip(`Кафе улучшено до уровня ${game.level}! Бургеры стали дороже.`);
+                } else {
+                    showTip(`Для апгрейда нужно ${game.upgradeCost}$. Подзаработайте денег!`);
+                }
+            }
+        }
+
+        // 4. У стола (Отдать бургер или Забрать чаевые)
+        else if (Math.abs(ziggy.x - TRIGGER_TABLE) < 40) {
+            if (ziggy.carrying === 'burger' && guest.state === 'waiting') {
+                ziggy.carrying = 'nothing';
+                guest.state = 'eating';
+                guest.timer = 120; // Время на поедание бургера
+                showTip("Гость кушает. Подождите немного, пока он закончит.");
+            } else if (ziggy.carrying === 'nothing' && guest.state === 'leaving_money') {
+                game.money += guest.moneyOnTable;
+                guest.moneyOnTable = 0;
+                guest.state = 'none';
+                showTip(`Вы забрали выручку! Отличная работа.`);
+            }
+        }
+        updateUI();
     }
 
-    // --- ИГРОВАЯ ЛОГИКА И АНИМАЦИОННЫЙ ЦИКЛ ---
-
-    function addLog(text) {
-        const logBox = document.getElementById('log');
-        logBox.innerHTML += `<br>• ${text}`;
-        logBox.scrollTop = logBox.scrollHeight;
+    function showTip(text) {
+        document.getElementById('action-tip').innerText = text;
     }
 
     function updateUI() {
         document.getElementById('ui-money').innerText = game.money;
-        document.getElementById('ui-meat').innerText = game.meat;
+        document.getElementById('ui-meat').innerText = game.fridgeMeat;
         document.getElementById('ui-level').innerText = game.level;
-        document.getElementById('cost-buy').innerText = game.buyCost;
-        document.getElementById('cost-up').innerText = game.upCost;
-
-        // Блокировка кнопок во время анимаций работы
-        let busy = game.status !== 'idle';
-        document.getElementById('btn-buy').disabled = busy || game.money < game.buyCost;
-        document.getElementById('btn-upgrade').disabled = busy || game.money < game.upCost;
-        document.getElementById('btn-work').disabled = busy || game.meat <= 0;
     }
 
-    // Нажатие: Закупка товара
-    function triggerBuy() {
-        if (game.money >= game.buyCost && game.status === 'idle') {
+    // --- ОТРИСОВКА ПИКСЕЛЬ-АРТА ---
+
+    function drawBob(x, y, bobState) {
+        let bobY = y;
+        if (bobState === 'cooking') bobY += (Math.floor(Date.now() / 150) % 2) * 2; // Трясется при готовке
+
+        ctx.fillStyle = '#f39c12'; // Борода
+        ctx.fillRect(x - 8, bobY + 4, 16, 12);
+        ctx.fillStyle = '#ffdbac'; // Лицо
+        ctx.fillRect(x - 5, bobY - 2, 11, 8);
+        ctx.fillStyle = '#fff';    // Колпак
+        ctx.fillRect(x - 6, bobY - 14, 13, 12);
+        ctx.fillStyle = '#7f8c8d'; // Одежда
+        ctx.fillRect(x - 7, bobY + 12, 15, 14);
+        ctx.fillStyle = '#000';    // Глаза смотрят налево, на плиту
+        ctx.fillRect(x - 4, bobY, 2, 2);
+    }
+
+    function drawZiggy(x, y) {
+        let zigY = y;
+        if (ziggy.isMoving) zigY += (Math.floor(ziggy.frame / 5) % 2) * 3; // Анимация покачивания ног
+
+        ctx.fillStyle = '#9b59b6'; // Свитер
+        ctx.fillRect(x - 4, zigY, 9, 28);
+        ctx.fillStyle = '#ffdbac'; // Кожа
+        ctx.fillRect(x - 4, zigY - 12, 9, 12);
+        ctx.fillStyle = '#2c3e50'; // Ноги
+        ctx.fillRect(x - 4, zigY + 28, 3, 16);
+        ctx.fillRect(x + 2, zigY + 28, 3, 16);
+        ctx.fillStyle = '#34495e'; // Волосы
+        ctx.fillRect(x - 5, zigY - 16, 11, 5);
+        ctx.fillStyle = '#000';    // Глаза
+        ctx.fillRect(x + (ziggy.dir > 0 ? 2 : -3), zigY - 8, 2, 2);
+
+        // Что в руках?
+        if (ziggy.carrying === 'meat_box') {
+            ctx.fillStyle = '#d35400'; // Коробка мяса
+            ctx.fillRect(x + (ziggy.dir > 0 ? 6 : -16), zigY + 4, 12, 12);
+        } else if (ziggy.carrying === 'burger') {
+            ctx.fillStyle = '#f1c40f'; // Бургер в руках
+            ctx.fillRect(x + (ziggy.dir > 0 ? 6 : -14), zigY + 6, 10, 6);
+            ctx.fillStyle = '#e74c3c'; // Котлета внутри
+            ctx.fillRect(x + (ziggy.dir > 0 ? 6 : -14), zigY + 8, 10, 2);
+        }
+    }
+
+    function drawScene() {
+        // Задний фон (Улица и Кафе)
+        ctx.fillStyle = '#111'; // Улица снаружи
+        ctx.fillRect(0, 0, 850, 320);
+
+        // Цвета стен внутри зависят от уровня кафе
+        ctx.fillStyle = game.level >= 3 ? '#234e40' : (game.level === 2 ? '#4a6572' : '#34495e'); 
+        ctx.fillRect(180, 20, 670, 240);
+
+        // Полы
+        ctx.fillStyle = '#7f8c8d'; // Асфальт
+        ctx.fillRect(0, 260, 180, 60);
+        ctx.fillStyle = game.level >= 2 ? '#1c2833' : '#2c3e50'; // Пол внутри
+        ctx.fillRect(180, 260, 670, 60);
+
+        // Дверь
+        ctx.fillStyle = '#7e5109';
+        ctx.fillRect(180, 140, 45, 120);
+
+        // Грузовик (Слева)
+        ctx.fillStyle = '#c0392b';
+        ctx.fillRect(10, 150, 90, 70);
+        ctx.fillStyle = '#f1c40f';
+        ctx.fillRect(100, 180, 20, 40);
+        ctx.fillStyle = '#333';
+        ctx.fillRect(25, 215, 20, 20);
+        ctx.fillRect(80, 215, 20, 20);
+
+        // Стол гостей (Слева в кафе)
+        ctx.fillStyle = game.level >= 3 ? '#f1c40f' : '#a0522d';
+        ctx.fillRect(TRIGGER_TABLE - 15, 210, 50, 50);
+
+        // Прилавок выдачи и касса (По центру)
+        ctx.fillStyle = '#bdc3c7';
+        ctx.fillRect(TRIGGER_COUNTER - 20, 200, 60, 60);
+        ctx.fillStyle = '#f39c12'; // Кассовый аппарат
+        ctx.fillRect(TRIGGER_COUNTER + 10, 185, 15, 15);
+
+        // Отображение готовых бургеров на прилавке
+        for (let i = 0; i < counterBurgers; i++) {
+            ctx.fillStyle = '#f1c40f';
