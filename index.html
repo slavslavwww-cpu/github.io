@@ -55,8 +55,8 @@
             font-size: 0.85em;
             font-weight: bold;
             text-align: center;
+            min-height: 20px;
         }
-        /* Кнопки управления для телефона */
         .mobile-controls {
             display: flex;
             width: 100%;
@@ -117,7 +117,6 @@
 
 <div class="tip" id="action-tip">Идите к машине слева за коробкой мяса!</div>
 
-<!-- Кнопки для телефона -->
 <div class="mobile-controls">
     <div class="nav-btns">
         <div class="m-btn" id="m-left">⬅️</div>
@@ -126,7 +125,7 @@
     <div class="m-btn" id="m-action">ДЕЙСТВИЕ</div>
 </div>
 
-<div class="pc-info">Для ПК: Стрелки клавиатуры — ходить, Пробел — действие.</div>
+<div class="pc-info">Для ПК: А/D или Стрелки — ходить, Пробел — действие.</div>
 
 <script>
     const canvas = document.getElementById('gameCanvas');
@@ -139,80 +138,75 @@
     let counterBurgers = 0;
     let guest = { state: 'none', timer: 0, patience: 100, moneyOnTable: 0 };
 
-    // Управление
     let keys = {};
     let moveLeft = false;
     let moveRight = false;
 
-    // Клавиатура ПК
+    // Считывание клавиатуры ПК
     window.addEventListener('keydown', e => { 
         keys[e.code] = true; 
         if(e.code === 'Space') { e.preventDefault(); handleAction(); }
     });
     window.addEventListener('keyup', e => keys[e.code] = false);
 
-    // Кнопки телефона
-    const btnLeft = document.getElementById('m-left');
-    const btnRight = document.getElementById('m-right');
-    const btnAction = document.getElementById('m-action');
+    // Управление для мобильных (Тач-события)
+    document.getElementById('m-left').addEventListener('touchstart', e => { e.preventDefault(); moveLeft = true; });
+    document.getElementById('m-left').addEventListener('touchend', () => moveLeft = false);
+    document.getElementById('m-right').addEventListener('touchstart', e => { e.preventDefault(); moveRight = true; });
+    document.getElementById('m-right').addEventListener('touchend', () => moveRight = false);
+    document.getElementById('m-action').addEventListener('touchstart', e => { e.preventDefault(); handleAction(); });
 
-    btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); moveLeft = true; });
-    btnLeft.addEventListener('touchend', () => moveLeft = false);
-    btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); moveRight = true; });
-    btnRight.addEventListener('touchend', () => moveRight = false);
-    btnAction.addEventListener('touchstart', (e) => { e.preventDefault(); handleAction(); });
-
-    // Эмуляция для мышки на ПК (если проверять в режиме разработчика)
-    btnLeft.addEventListener('mousedown', () => moveLeft = true);
-    btnLeft.addEventListener('mouseup', () => moveLeft = false);
-    btnRight.addEventListener('mousedown', () => moveRight = true);
-    btnRight.addEventListener('mouseup', () => moveRight = false);
-    btnAction.addEventListener('mousedown', handleAction);
+    // Клик мышкой (для тестов на ПК)
+    document.getElementById('m-left').addEventListener('mousedown', () => moveLeft = true);
+    document.getElementById('m-left').addEventListener('mouseup', () => moveLeft = false);
+    document.getElementById('m-right').addEventListener('mousedown', () => moveRight = true);
+    document.getElementById('m-right').addEventListener('mouseup', () => moveRight = false);
+    document.getElementById('m-action').addEventListener('mousedown', handleAction);
 
     function handleAction() {
-        // У грузовика (x < 100)
+        // Логика закупки у грузовика (слева)
         if (ziggy.x < 100 && ziggy.carrying === 'nothing') {
             if (game.money >= game.meatCost) {
                 game.money -= game.meatCost;
                 ziggy.carrying = 'meat_box';
                 showTip("Взяли мясо! Несите направо к холодильнику.");
-            } else { showTip("Мало денег!"); }
+            } else { showTip("Недостаточно денег для закупки!"); }
         }
-        // У столика гостей (x от 180 до 240)
-        else if (ziggy.x >= 180 && ziggy.x <= 240) {
+        // Логика у стола гостей (в районе x=200)
+        else if (ziggy.x >= 170 && ziggy.x <= 250) {
             if (ziggy.carrying === 'burger' && guest.state === 'waiting') {
                 ziggy.carrying = 'nothing';
                 guest.state = 'eating';
                 guest.timer = 100;
-                showTip("Гость кушает бургер.");
+                showTip("Гость ест бургер. Подождите.");
             } else if (ziggy.carrying === 'nothing' && guest.state === 'leaving_money') {
                 game.money += guest.moneyOnTable;
                 guest.moneyOnTable = 0;
                 guest.state = 'none';
-                showTip("Забрали выручку!");
+                showTip("Забрали выручку с бургера!");
             }
         }
-        // У прилавка/кассы (x от 330 до 400)
-        else if (ziggy.x >= 330 && ziggy.x <= 400) {
+        // Логика у кассы/выдачи (в районе x=370)
+        else if (ziggy.x >= 330 && ziggy.x <= 410) {
             if (ziggy.carrying === 'nothing' && counterBurgers > 0) {
                 counterBurgers--;
                 ziggy.carrying = 'burger';
-                showTip("Взяли бургер! Отнесите за столик слева.");
+                showTip("Взяли бургер! Несите гостю за стол слева.");
             } else if (ziggy.carrying === 'nothing' && counterBurgers === 0) {
                 if (game.money >= game.upgradeCost) {
                     game.money -= game.upgradeCost;
                     game.level++;
                     game.burgerPrice += 5;
                     game.upgradeCost = Math.floor(game.upgradeCost * 1.6);
-                    showTip("Кафе улучшено! Стены обновились.");
+                    showTip("Кафе улучшено! Стены перекрашены.");
                 } else { showTip(`Для улучшения нужно ${game.upgradeCost}$.`); }
             }
         }
-        // У холодильника (x > 440)
-        else if (ziggy.x > 440 && ziggy.carrying === 'meat_box') {
+        // Логика у холодильника (справа)
+        else if (ziggy.x > 430 && ziggy.carrying === 'meat_box') {
             ziggy.carrying = 'nothing';
             game.fridgeMeat++;
-            showTip("Положили мясо. Боб начинает готовить!");
+            showTip("Положили мясо. Боб готовит новые бургеры!");
         }
         updateUI();
     }
@@ -225,7 +219,7 @@
     }
 
     function gameLoop() {
-        // Передвижение
+        // Движение игрока
         if (keys['ArrowLeft'] || keys['KeyA'] || moveLeft) {
             ziggy.x -= ziggy.speed;
             ziggy.dir = -1;
@@ -238,7 +232,7 @@
         if (ziggy.x < 20) ziggy.x = 20;
         if (ziggy.x > 580) ziggy.x = 580;
 
-        // Повар Боб автоматический
+        // Логика Боба (Авто-повар)
         if (bob.state === 'idle' && game.fridgeMeat > 0 && counterBurgers < 3) {
             game.fridgeMeat--;
             bob.state = 'cooking';
@@ -253,7 +247,7 @@
             }
         }
 
-        // Посетители
+        // Появление гостей
         if (guest.state === 'none' && Math.random() < 0.005) {
             guest.state = 'waiting';
             guest.patience = 100;
@@ -262,7 +256,7 @@
             guest.patience -= 0.1;
             if (guest.patience <= 0) {
                 guest.state = 'none';
-                showTip("Гость ушел, не дождавшись еды!");
+                showTip("Гость ушел голодным!");
             }
         }
         if (guest.state === 'eating') {
@@ -273,11 +267,14 @@
             }
         }
 
-        // РИСОВАНИЕ ИГРЫ
-        ctx.fillStyle = '#111'; // Улица снаружи
+        // --- РИСОВАНИЕ ---
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Улица
+        ctx.fillStyle = '#111';
         ctx.fillRect(0, 0, 600, 300);
 
-        // Внутренние стены меняются от уровня
+        // Стены кафе (цвет меняется от лвла)
         ctx.fillStyle = game.level >= 3 ? '#1e3f20' : (game.level === 2 ? '#2e4053' : '#34495e');
         ctx.fillRect(150, 20, 450, 230);
 
@@ -285,10 +282,6 @@
         ctx.fillStyle = '#7f8c8d'; ctx.fillRect(0, 250, 150, 50);
         ctx.fillStyle = '#2c3e50'; ctx.fillRect(150, 250, 450, 50);
 
-        // Дверь
+        // Дверь в заведение
         ctx.fillStyle = '#7e5109'; ctx.fillRect(150, 150, 35, 100);
-
-        // Машина снабжения
-        ctx.fillStyle = '#c0392b'; ctx.fillRect(10, 160, 80, 60);
-        ctx.fillStyle = '#f1c40f'; ctx.fillRect(90, 180, 15, 40);
 
