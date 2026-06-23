@@ -401,6 +401,7 @@
                 <aside class="admin-sidebar">
                     <div class="admin-nav-item active" onclick="switchAdminTab('orders', this)"><i data-lucide="package"></i> Заказы</div>
                     <div class="admin-nav-item" onclick="switchAdminTab('products', this)"><i data-lucide="package-search"></i> Товары</div>
+                    <div class="admin-nav-item" onclick="switchAdminTab('categories', this)"><i data-lucide="layout-grid"></i> Категории</div>
                     <div class="admin-nav-item" onclick="switchAdminTab('settings', this)"><i data-lucide="settings"></i> Настройки TG</div>
                 </aside>
                 <div class="admin-main">
@@ -408,6 +409,19 @@
                     <div id="adminProductsTab" class="admin-tab" style="display:none;">
                         <div style="display:flex; justify-content: space-between; margin-bottom: 1rem;"><h3>Товары</h3><button class="add-to-cart" onclick="openProductModal()"><i data-lucide="plus"></i> Добавить</button></div>
                         <table class="admin-table"><thead><tr><th>Фото</th><th>Название</th><th>Цена</th><th>Действие</th></tr></thead><tbody id="adminProductsList"></tbody></table>
+                    </div>
+                    <div id="adminCategoriesTab" class="admin-tab" style="display:none;">
+                        <div style="max-width: 500px; background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border);">
+                            <h3>Категории</h3>
+                            <div class="form-group" style="margin-top:1rem;">
+                                <label>Новая категория</label>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <input type="text" id="newCatInput" placeholder="Название...">
+                                    <button class="add-to-cart" style="width: auto;" onclick="addCategory()">+</button>
+                                </div>
+                            </div>
+                            <div id="adminCategoriesList" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
+                        </div>
                     </div>
                     <div id="adminSettingsTab" class="admin-tab" style="display:none;">
                         <div style="max-width: 500px; background: var(--card-bg); padding: 2rem; border-radius: 12px;">
@@ -450,10 +464,10 @@
     <script>
         const ADMIN_PASSWORD = 'admin123';
         const STARTER_PRODUCTS = [
-            { id: 1, name: 'Перфоратор BOSCH Professional', desc: 'Мощный инструмент для профессионалов. Идеально подходит для сверления с ударом в бетоне, кирпиче и камне. Оснащен системой защиты пользователя.', price: 12500, category: 'Инструменты', img: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?q=80&w=800' },
-            { id: 2, name: 'Цемент М500 (50кг)', desc: 'Высококачественный портландцемент для строительных работ любой сложности. Обеспечивает высокую прочность конструкций.', price: 650, category: 'Цемент', img: 'https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?q=80&w=800' },
-            { id: 3, name: 'Кирпич облицовочный', desc: 'Керамический кирпич с идеальной геометрией. Предназначен для внешней отделки зданий. Устойчив к морозам.', price: 35, category: 'Кирпич', img: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=800' },
-            { id: 4, name: 'Набор саморезов (1000 шт)', desc: 'Саморезы по дереву из закаленной стали. Острое жало и качественная резьба обеспечивают легкое вкручивание.', price: 850, category: 'Крепеж', img: 'https://images.unsplash.com/photo-1586864387417-f58fd4c50e4e?q=80&w=800' }
+            { id: 1, name: 'Перфоратор BOSCH Professional', desc: 'Мощный инструмент для профессионалов. Идеально подходит для сверления с ударом в бетоне, кирпиче и камне.', price: 12500, category: 'Инструменты', img: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?q=80&w=800' },
+            { id: 2, name: 'Цемент М500 (50кг)', desc: 'Высококачественный портландцемент для строительных работ любой сложности.', price: 650, category: 'Цемент', img: 'https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?q=80&w=800' },
+            { id: 3, name: 'Кирпич облицовочный', desc: 'Керамический кирпич с идеальной геометрией. Предназначен для внешней отделки зданий.', price: 35, category: 'Кирпич', img: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=800' },
+            { id: 4, name: 'Набор саморезов (1000 шт)', desc: 'Саморезы по дереву из закаленной стали. Обеспечивают легкое вкручивание.', price: 850, category: 'Крепеж', img: 'https://images.unsplash.com/photo-1586864387417-f58fd4c50e4e?q=80&w=800' }
         ];
 
         let products = JSON.parse(localStorage.getItem('products')) || STARTER_PRODUCTS;
@@ -582,6 +596,7 @@
             el.classList.add('active');
             if(t === 'orders') renderAdminOrders();
             if(t === 'products') renderAdminProducts();
+            if(t === 'categories') renderAdminCategories();
         }
 
         function renderAdminOrders() {
@@ -590,7 +605,7 @@
             lucide.createIcons();
         }
 
-        function updateDel(id, v) { const o = orders.find(i => i.id === id); o.deliveryCost = parseInt(v) || 0; o.status = 'Ок'; saveData(); renderAdminOrders(); }
+        function updateDel(id, v) { const o = orders.find(i => i.id === id); o.deliveryCost = parseInt(v) || 0; o.status = 'Рассчитан'; saveData(); renderAdminOrders(); }
         function delOrder(id) { if(confirm('Удалить?')) { orders = orders.filter(o => o.id !== id); saveData(); renderAdminOrders(); } }
 
         function renderAdminProducts() {
@@ -600,6 +615,31 @@
         }
 
         function delProd(id) { if(confirm('Удалить?')) { products = products.filter(p => p.id !== id); saveData(); renderAdminProducts(); } }
+
+        function renderAdminCategories() {
+            const l = document.getElementById('adminCategoriesList');
+            l.innerHTML = categories.map(c => `
+                <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-color); padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border);">
+                    <span>${c}</span>
+                    <button class="qty-btn" onclick="delCategory('${c}')"><i data-lucide="trash-2" size="16"></i></button>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function addCategory() {
+            const input = document.getElementById('newCatInput');
+            const name = input.value.trim();
+            if (name && !categories.includes(name)) {
+                categories.push(name); saveData(); input.value = ''; renderAdminCategories(); showToast('Добавлено');
+            }
+        }
+
+        function delCategory(name) {
+            if(confirm('Удалить категорию?')) {
+                categories = categories.filter(c => c !== name); saveData(); renderAdminCategories();
+            }
+        }
 
         function openProductModal(id = null) {
             const m = document.getElementById('productModal');
