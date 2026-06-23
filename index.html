@@ -2,682 +2,1252 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Pixel Burger Cafe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СТРОЙ ДОМ | Маркетплейс строительных материалов</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* Общие стили для body */
-        body {
-            display: flex;
-            flex-direction: column; /* Изменено для размещения кнопок */
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+        :root {
+            --bg-color: #0a0a0a;
+            --card-bg: #141414;
+            --primary: #ff6b00;
+            --primary-hover: #e66000;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --border: #262626;
+            --success: #22c55e;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
             margin: 0;
-            background-color: #222;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* Layout */
+        header {
+            background-color: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            cursor: pointer;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .nav-btn:hover {
+            color: var(--primary);
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: var(--primary);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 50%;
+            font-weight: bold;
+        }
+
+        main {
+            padding: 2rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+            min-height: 80vh;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .hero h1 span {
+            color: var(--primary);
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Filters */
+        .categories {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .cat-btn {
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .cat-btn.active, .cat-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .product-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
             overflow: hidden;
-            font-family: 'Press Start 2P', cursive; /* Используем пиксельный шрифт, если доступен */
-            color: #eee;
-            -webkit-user-select: none; /* Отключаем выделение текста для лучшего взаимодействия на мобильных */
-            user-select: none;
-            touch-action: manipulation; /* Предотвращает двойное нажатие для зума */
-        }
-
-        /* Стили для игрового Canvas */
-        #gameCanvas {
-            background-color: #333;
-            border: 4px solid #555;
-            image-rendering: pixelated; /* Важно для пиксельной графики */
-            /* Делаем Canvas более отзывчивым для мобильных */
-            max-width: 95vw;
-            max-height: 95vh;
-            width: auto; /* Позволяет Canvas масштабироваться */
-            height: auto;
-            display: block; /* Убираем лишние отступы */
-            margin-bottom: 10px; /* Отступ от кнопок */
-        }
-
-        /* Контейнер для мобильных кнопок */
-        #mobile-controls {
+            transition: var(--transition);
             display: flex;
             flex-direction: column;
-            align-items: center;
-            margin-top: 10px;
         }
 
-        .dpad-row {
-            display: flex;
+        .product-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(255, 107, 0, 0.1);
         }
 
-        /* Стили для кнопок управления */
-        .control-button {
-            background-color: #555;
-            color: #FFF;
-            border: 2px solid #777;
-            border-radius: 5px;
-            width: 50px;
-            height: 50px;
+        .product-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: #1a1a1a;
+        }
+
+        .product-info {
+            padding: 1.5rem;
+            flex-grow: 1;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+        }
+
+        .product-cat {
+            color: var(--primary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            font-size: 1.5em;
-            margin: 5px;
+        }
+
+        .product-price {
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        .add-to-cart {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
             cursor: pointer;
-            user-select: none;
-            touch-action: manipulation;
-            transition: background-color 0.1s;
+            transition: var(--transition);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .control-button:active, .control-button.active {
-            background-color: #777;
-            border-color: #AAA;
+        .add-to-cart:hover {
+            background: var(--primary-hover);
         }
 
-        #action-button {
-            background-color: #007BFF;
-            border-color: #0056b3;
+        /* Cart & Admin Sections */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .section-header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-back {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-back:hover {
+            color: var(--primary);
+        }
+
+        /* Cart View */
+        .cart-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+        }
+
+        .cart-items {
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+        }
+
+        .cart-item {
+            display: grid;
+            grid-template-columns: 80px 1fr auto auto;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-item img {
             width: 80px;
             height: 80px;
-            font-size: 1.8em;
-            margin-left: 20px; /* Отступ от d-pad */
-        }
-        #action-button:active, #action-button.active {
-            background-color: #0056b3;
-            border-color: #004085;
+            border-radius: 8px;
+            object-fit: cover;
         }
 
-        /* Стилизация для пиксельного шрифта (если нужно) */
-        @font-face {
-            font-family: 'Press Start 2P';
-            src: url('https://fonts.cdnfonts.com/s/7201/PressStart2P-Regular.woff') format('woff'); /* Пример, в реальном проекте лучше хранить локально */
-            font-weight: normal;
-            font-style: normal;
+        .cart-item-qty {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--bg-color);
+            padding: 0.3rem 0.8rem;
+            border-radius: 6px;
         }
-        /* Если шрифт не загрузится, будет использован monospace */
+
+        .qty-btn {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .remove-btn {
+            color: #ff4444;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .checkout-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .summary-total {
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+            margin-top: 1rem;
+            font-size: 1.4rem;
+            font-weight: 800;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: var(--bg-color);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 1rem;
+        }
+
+        .btn-submit:hover {
+            background: var(--primary-hover);
+        }
+
+        /* Admin Styles */
+        .admin-login {
+            max-width: 400px;
+            margin: 100px auto;
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .admin-panel-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+        }
+
+        .admin-sidebar {
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 1rem;
+            height: fit-content;
+        }
+
+        .admin-nav-item {
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-nav-item:hover, .admin-nav-item.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .admin-table th, .admin-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .admin-table th {
+            background: #1a1a1a;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .order-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .badge-pending { background: #3b82f6; }
+        .badge-success { background: #10b981; }
+
+        .delivery-input-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .delivery-input {
+            width: 100px;
+            padding: 5px;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            max-width: 600px;
+            width: 90%;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        /* Toast */
+        #toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transform: translateY(150%);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2000;
+        }
+
+        #toast.show {
+            transform: translateY(0);
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .cart-container, .admin-panel-content {
+                grid-template-columns: 1fr;
+            }
+            .hero h1 { font-size: 2.2rem; }
+            header { padding: 1rem 1rem; }
+            .admin-sidebar { display: flex; overflow-x: auto; gap: 0.5rem; }
+            .admin-nav-item { white-space: nowrap; }
+            .cart-item { grid-template-columns: 60px 1fr; gap: 1rem; }
+            .cart-item-qty, .remove-btn { grid-column: span 2; justify-self: start; }
+        }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="400" height="300"></canvas>
 
-    <div id="mobile-controls">
-        <div class="dpad-row">
-            <div class="control-button" id="up-button">&#9650;</div>
+    <header>
+        <a href="#" class="logo" onclick="showSection('home')">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 10l9-8 9 8v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V10z"></path>
+                <path d="M15 2h3v5"></path>
+                <path d="M9 22V12h6v10"></path>
+            </svg>
+            Строй дом
+        </a>
+        <div class="nav-actions">
+            <button class="nav-btn" onclick="showSection('cart')">
+                <i data-lucide="shopping-cart"></i>
+                <span class="cart-count" id="cartCount">0</span>
+            </button>
+            <button class="nav-btn" onclick="showAdmin()">
+                <i data-lucide="user-cog"></i>
+            </button>
         </div>
-        <div class="dpad-row">
-            <div class="control-button" id="left-button">&#9664;</div>
-            <div class="control-button" id="down-button">&#9660;</div>
-            <div class="control-button" id="right-button">&#9654;</div>
-            <div class="control-button" id="action-button">E</div>
+    </header>
+
+    <main id="mainContent">
+        <!-- Home Section -->
+        <section id="homeSection" class="section active">
+            <div class="hero animate-fade">
+                <h1>Стройте <span>Надежно</span></h1>
+                <p>Маркетплейс «Строй дом»: лучшие строительные материалы с доставкой прямо на ваш объект. Качество, проверенное временем.</p>
+            </div>
+
+            <div class="categories" id="categoryFilters">
+                <!-- Injected by JS -->
+            </div>
+
+            <div class="products-grid" id="productsGrid">
+                <!-- Products injected by JS -->
+            </div>
+        </section>
+
+        <!-- Cart Section -->
+        <section id="cartSection" class="section">
+            <div class="section-header">
+                <a class="btn-back" onclick="showSection('home')"><i data-lucide="arrow-left"></i> Вернуться к покупкам</a>
+                <h2>Ваша корзина</h2>
+            </div>
+            <div class="cart-container" id="cartContainer">
+                <div class="cart-items" id="cartItemsList">
+                    <!-- Cart items injected by JS -->
+                </div>
+                <div class="checkout-card">
+                    <h3>Оформление заказа</h3>
+                    <div class="summary-row" style="margin-top: 1.5rem;">
+                        <span>Товары:</span>
+                        <span id="summarySubtotal">0 ₽</span>
+                    </div>
+                    <div class="summary-total">
+                        <div class="summary-row">
+                            <span>Итого:</span>
+                            <span id="summaryTotal">0 ₽</span>
+                        </div>
+                    </div>
+                    
+                    <form id="checkoutForm" onsubmit="handleCheckout(event)" style="margin-top: 1.5rem;">
+                        <div class="form-group">
+                            <label for="custName">Ваше имя</label>
+                            <input type="text" id="custName" required placeholder="Иван Иванов">
+                        </div>
+                        <div class="form-group">
+                            <label for="custPhone">Телефон</label>
+                            <input type="tel" id="custPhone" required placeholder="+7 (999) 000-00-00">
+                        </div>
+                        <div class="form-group">
+                            <label for="deliveryMethod">Способ получения</label>
+                            <select id="deliveryMethod" onchange="toggleAddressField()">
+                                <option value="Самовывоз">Самовывоз</option>
+                                <option value="Доставка">Доставка</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="addressField" style="display: none;">
+                            <label for="custAddress">Адрес доставки</label>
+                            <textarea id="custAddress" rows="2" placeholder="Улица, дом, квартира/офис"></textarea>
+                        </div>
+                        <button type="submit" class="btn-submit">ОФОРМИТЬ ЗАКАЗ</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Login Section -->
+        <section id="adminLoginSection" class="section">
+            <div class="admin-login">
+                <i data-lucide="lock" size="48" style="color: var(--primary); margin-bottom: 1rem;"></i>
+                <h2>Вход для персонала</h2>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">Введите пароль для доступа к управлению</p>
+                <form onsubmit="handleAdminLogin(event)">
+                    <div class="form-group">
+                        <input type="password" id="adminPass" placeholder="Пароль" required>
+                    </div>
+                    <button type="submit" class="btn-submit">ВОЙТИ</button>
+                    <button type="button" class="btn-back" style="margin: 1rem auto; background:none; border:none;" onclick="showSection('home')">На главную</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Admin Panel Section -->
+        <section id="adminPanelSection" class="section">
+            <div class="section-header">
+                <h2>Панель администратора</h2>
+                <button class="cat-btn" onclick="logoutAdmin()">Выйти</button>
+            </div>
+            
+            <div class="admin-panel-content">
+                <aside class="admin-sidebar">
+                    <div class="admin-nav-item active" onclick="switchAdminTab('orders', this)">
+                        <i data-lucide="package"></i> Заказы
+                    </div>
+                    <div class="admin-nav-item" onclick="switchAdminTab('products', this)">
+                        <i data-lucide="package-search"></i> Товары
+                    </div>
+                    <div class="admin-nav-item" onclick="switchAdminTab('categories', this)">
+                        <i data-lucide="layout-grid"></i> Категории
+                    </div>
+                    <div class="admin-nav-item" onclick="switchAdminTab('settings', this)">
+                        <i data-lucide="settings"></i> Настройки TG
+                    </div>
+                </aside>
+
+                <div class="admin-main">
+                    <!-- Admin Orders Tab -->
+                    <div id="adminOrdersTab" class="admin-tab">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID / Дата</th>
+                                    <th>Покупатель</th>
+                                    <th>Сумма</th>
+                                    <th>Доставка</th>
+                                    <th>Статус</th>
+                                    <th>Действие</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminOrdersList">
+                                <!-- Orders injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Admin Products Tab -->
+                    <div id="adminProductsTab" class="admin-tab" style="display:none;">
+                        <div style="display:flex; justify-content: space-between; margin-bottom: 1rem;">
+                            <h3>Список товаров</h3>
+                            <button class="add-to-cart" onclick="openProductModal()"><i data-lucide="plus"></i> Добавить</button>
+                        </div>
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Фото</th>
+                                    <th>Название</th>
+                                    <th>Категория</th>
+                                    <th>Цена</th>
+                                    <th>Действие</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminProductsList">
+                                <!-- Products injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Admin Categories Tab -->
+                    <div id="adminCategoriesTab" class="admin-tab" style="display:none;">
+                        <div style="max-width: 500px; background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border);">
+                            <h3>Управление категориями</h3>
+                            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Добавляйте или удаляйте категории товаров.</p>
+                            <div class="form-group">
+                                <label for="newCatNameInput">Новая категория</label>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <input type="text" id="newCatNameInput" placeholder="Название...">
+                                    <button class="add-to-cart" onclick="addCategory()">Добавить</button>
+                                </div>
+                            </div>
+                            <div id="adminCategoriesList" style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                                <!-- Categories injected by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Settings Tab -->
+                    <div id="adminSettingsTab" class="admin-tab" style="display:none;">
+                        <div style="max-width: 500px; background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border);">
+                            <h3>Интеграция с Telegram</h3>
+                            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Настройте бота, чтобы мгновенно получать уведомления о заказах.</p>
+                            <div class="form-group">
+                                <label>Telegram Bot Token</label>
+                                <input type="password" id="tgToken" placeholder="1234567890:ABC...">
+                            </div>
+                            <div class="form-group">
+                                <label>Chat ID</label>
+                                <input type="text" id="tgChatId" placeholder="-100...">
+                            </div>
+                            <button class="btn-submit" onclick="saveAdminSettings()">СОХРАНИТЬ НАСТРОЙКИ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Product Modal -->
+    <div class="modal-overlay" id="productModal">
+        <div class="modal-content">
+            <i data-lucide="x" class="close-modal" onclick="closeProductModal()"></i>
+            <h2 id="modalTitle">Добавить товар</h2>
+            <form id="productForm" onsubmit="handleProductSubmit(event)" style="margin-top: 1.5rem;">
+                <input type="hidden" id="editProductId">
+                <div class="form-group">
+                    <label for="pName">Название</label>
+                    <input type="text" id="pName" required>
+                </div>
+                <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="pPrice">Цена (₽)</label>
+                        <input type="number" id="pPrice" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pCategory">Категория</label>
+                        <select id="pCategory">
+                            <!-- Injected by JS -->
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="pDesc">Описание</label>
+                    <textarea id="pDesc" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="pImg">Ссылка на фото</label>
+                    <input type="url" id="pImg" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                    <label>Или загрузите файл</label>
+                    <input type="file" id="pImageFile" accept="image/*" onchange="handleImageUpload(this)">
+                    <small style="color: var(--text-muted);">Изображение будет сохранено локально</small>
+                </div>
+                <button type="submit" class="btn-submit">СОХРАНИТЬ</button>
+            </form>
         </div>
     </div>
 
+    <div id="toast">Уведомление</div>
+
     <script>
-        // === КОНСТАНТЫ И ОСНОВНЫЕ НАСТРОЙКИ ИГРЫ ===
-        const CANVAS = document.getElementById('gameCanvas');
-        const CTX = CANVAS.getContext('2d');
-        const GRID_SIZE = 16; // Размер одной "пиксельной" клетки в реальных пикселях
-        const CANVAS_WIDTH = CANVAS.width;
-        const CANVAS_HEIGHT = CANVAS.height;
-
-        // Скорость игры (сколько раз вызывается update за секунду)
-        const FPS = 60;
-        const FRAME_TIME = 1000 / FPS;
-
-        let lastFrameTime = 0;
-        let accumulator = 0;
-
-        // === ПИКСЕЛЬНЫЕ СПРАЙТЫ ===
-        // Простой спрайт игрока (2x3 GRID_SIZE пикселя)
-        // Каждый элемент - это цвет пикселя. 'T' - прозрачный.
-        const playerSprite = [
-            ['T', '#6F4E37', '#6F4E37', 'T'], // Голова (коричневая)
-            ['T', '#FFD700', '#FFD700', 'T'], // Кожа (желтая/кремовая)
-            ['#0000FF', '#0000FF', '#0000FF', '#0000FF'], // Рубашка (синяя)
-            ['#0000FF', '#0000FF', '#0000FF', '#0000FF'], // Рубашка (синяя)
-            ['#00008B', '#00008B', '#00008B', '#00008B'], // Ноги (темно-синие)
-            ['#00008B', '#00008B', '#00008B', '#00008B']  // Ноги (темно-синие)
-        ];
-
-        // === ИГРОВОЕ СОСТОЯНИЕ ===
-        const gameState = {
-            player: {
-                x: 5 * GRID_SIZE,
-                y: 5 * GRID_SIZE,
-                width: GRID_SIZE * 2, // Ширина спрайта
-                height: GRID_SIZE * 3, // Высота спрайта
-                speed: GRID_SIZE * 2.5, // Скорость в пикселях/секунду
-                direction: 'down', // Куда смотрит персонаж (для будущих анимаций)
-                isMoving: false,
-            },
-            money: 1000,
-            day: 1,
-            popularity: 50, // Из 100
-            ingredients: {
-                buns: 10,
-                patties: 10,
-                veggies: 10,
-                burgers: 0, // Приготовленные бургеры
-            },
-            keys: {}, // Для отслеживания нажатых клавиш (клавиатура)
-            touchKeys: {}, // Для отслеживания нажатых кнопок (тачскрин)
-
-            cafeLayout: {
-                // Все координаты и размеры в единицах GRID_SIZE
-                // Зоны пола
-                kitchen_floor: { x: 0, y: 0, width: 10, height: 8, color: '#A0522D', label: 'Кухня' }, // Коричневый
-                service_counter_area: { x: 10, y: 3, width: 2, height: 5, color: '#8B4513', label: 'Стойка выдачи' }, // Темно-коричневый
-                dining_area_floor: { x: 12, y: 0, width: 13, height: 18, color: '#D2B48C', label: 'Обеденный зал' }, // Светло-коричневый
-                storage_floor: { x: 0, y: 8, width: 6, height: 10, color: '#696969', label: 'Склад/Компьютер' }, // Серый
-                entrance_floor: { x: 10, y: 15, width: 2, height: 3, color: '#ADD8E6', label: 'Вход' }, // Голубой (для клиентов)
-
-                // Мебель и объекты
-                stove: { x: 1 * GRID_SIZE, y: 1 * GRID_SIZE, width: 2 * GRID_SIZE, height: 2 * GRID_SIZE, color: '#555', label: 'Плита', details: ['#777', '#444', '#777', '#444'] },
-                prepStation: { x: 4 * GRID_SIZE, y: 1 * GRID_SIZE, width: 3 * GRID_SIZE, height: 2 * GRID_SIZE, color: '#A8A8A8', label: 'Стол готовки', details: ['#BBB', '#999'] },
-                computer_desk: { x: 0.5 * GRID_SIZE, y: 8.5 * GRID_SIZE, width: 1.5 * GRID_SIZE, height: 1.5 * GRID_SIZE, color: '#333', label: 'Компьютерный стол' },
-                computer_monitor: { x: 0.6 * GRID_SIZE, y: 8.6 * GRID_SIZE, width: 0.8 * GRID_SIZE, height: 0.8 * GRID_SIZE, color: '#000', label: 'Монитор' },
-                service_counter_top: { x: 10 * GRID_SIZE, y: 3 * GRID_SIZE, width: 2 * GRID_SIZE, height: 1 * GRID_SIZE, color: '#4CAF50', label: 'Стойка' }, // Зеленая столешница
-                
-                // Столы (столешницы и стулья)
-                table1: { x: 13 * GRID_SIZE, y: 2 * GRID_SIZE, width: 2 * GRID_SIZE, height: 1.5 * GRID_SIZE, color: '#8B4513', label: 'Стол 1' },
-                chair1a: { x: 13 * GRID_SIZE, y: 1 * GRID_SIZE, width: 0.8 * GRID_SIZE, height: 0.8 * GRID_SIZE, color: '#D2B48C', label: 'Стул' },
-                chair1b: { x: 14.2 * GRID_SIZE, y: 1 * GRID_SIZE, width: 0.8 * GRID_SIZE, height: 0.8 * GRID_SIZE, color: '#D2B48C', label: 'Стул' },
-                chair1c: { x: 13 * GRID_SIZE, y: 3.5 * GRID_SIZE, width: 0.8 * GRID_SIZE, height: 0.8 * GRID_SIZE, color: '#D2B48C', label: 'Стул' },
-                chair1d: { x: 14.2 * GRID_SIZE, y: 3.5 * GRID_SIZE, width: 0.8 * GRID_SIZE, height: 0.8 * GRID_SIZE, color: '#D2B48C', label: 'Стул' },
-            },
-            
-            // Массив для отслеживания интерактивных объектов
-            interactiveObjects: [
-                {
-                    type: 'computer',
-                    x: 0.6 * GRID_SIZE, y: 8.6 * GRID_SIZE,
-                    width: 0.8 * GRID_SIZE, height: 0.8 * GRID_SIZE,
-                    action: 'openShopMenu',
-                    label: 'Компьютер (E)',
-                },
-                {
-                    type: 'stove',
-                    x: 1 * GRID_SIZE, y: 1 * GRID_SIZE,
-                    width: 2 * GRID_SIZE, height: 2 * GRID_SIZE,
-                    action: 'cookBurger',
-                    label: 'Плита (E)',
-                },
-                // Зона выдачи готовых бургеров (пока заглушка)
-                {
-                    type: 'service_counter_delivery',
-                    x: 10 * GRID_SIZE, y: 3 * GRID_SIZE,
-                    width: 2 * GRID_SIZE, height: 1 * GRID_SIZE,
-                    action: 'serveCustomer',
-                    label: 'Выдача (E)',
-                },
-            ],
-            currentInteraction: null, // Хранит объект, с которым игрок взаимодействует
-            showShopMenu: false, // Флаг для отображения меню магазина
-        };
-
-        // === ОБРАБОТКА ВВОДА (Клавиатура и Тачскрин) ===
-
-        // Обработка клавиатуры
-        document.addEventListener('keydown', (e) => {
-            gameState.keys[e.code] = true;
-            // Движение игрока
-            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyA', 'KeyD'].includes(e.code)) {
-                gameState.player.isMoving = true;
-            }
-            // Взаимодействие (клавиша 'E' или 'Пробел')
-            if (e.code === 'KeyE' || e.code === 'Space') {
-                handleInteraction();
-            }
-        });
-
-        document.addEventListener('keyup', (e) => {
-            gameState.keys[e.code] = false;
-            // Проверяем, остались ли другие клавиши движения нажатыми
-            if (!gameState.keys['ArrowUp'] && !gameState.keys['ArrowDown'] &&
-                !gameState.keys['ArrowLeft'] && !gameState.keys['ArrowRight'] &&
-                !gameState.keys['KeyW'] && !gameState.keys['KeyS'] &&
-                !gameState.keys['KeyA'] && !gameState.keys['KeyD']) {
-                gameState.player.isMoving = false;
-            }
-        });
-
-        // Обработка тач-кнопок
-        const controlButtons = document.querySelectorAll('.control-button');
-        controlButtons.forEach(button => {
-            button.addEventListener('touchstart', (e) => {
-                e.preventDefault(); // Предотвращает прокрутку и зум
-                button.classList.add('active'); // Визуальное состояние нажатия
-                handleTouchButton(button.id, true);
-            }, { passive: false }); // { passive: false } для preventDefault
-            button.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                button.classList.remove('active');
-                handleTouchButton(button.id, false);
-            });
-            button.addEventListener('touchcancel', (e) => { // Если палец соскользнул
-                e.preventDefault();
-                button.classList.remove('active');
-                handleTouchButton(button.id, false);
-            });
-        });
-
-        function handleTouchButton(buttonId, isPressed) {
-            let keyToPress = '';
-            switch (buttonId) {
-                case 'up-button': keyToPress = 'ArrowUp'; break;
-                case 'down-button': keyToPress = 'ArrowDown'; break;
-                case 'left-button': keyToPress = 'ArrowLeft'; break;
-                case 'right-button': keyToPress = 'ArrowRight'; break;
-                case 'action-button': keyToPress = 'KeyE'; break;
-            }
-
-            if (keyToPress) {
-                gameState.touchKeys[keyToPress] = isPressed;
-                if (isPressed && keyToPress === 'KeyE') {
-                    handleInteraction(); // Вызываем взаимодействие по тапу
-                }
-                // Обновляем состояние движения игрока на основе тач-кнопок
-                const anyTouchMoveKeyPressed = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].some(key => gameState.touchKeys[key]);
-                const anyKeyboardMoveKeyPressed = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyA', 'KeyD'].some(key => gameState.keys[key]);
-                gameState.player.isMoving = anyTouchMoveKeyPressed || anyKeyboardMoveKeyPressed;
-            }
-        }
-
-        // Общая функция для обработки взаимодействия (вызывается из клавиатуры и тача)
-        function handleInteraction() {
-            if (gameState.currentInteraction) {
-                console.log(`Взаимодействие с: ${gameState.currentInteraction.label}`);
-                if (gameState.currentInteraction.action === 'openShopMenu') {
-                    gameState.showShopMenu = !gameState.showShopMenu; 
-                } else if (gameState.currentInteraction.action === 'cookBurger') {
-                    cookBurger();
-                } else if (gameState.currentInteraction.action === 'serveCustomer') {
-                    console.log('Попытка обслужить клиента...');
-                }
-            }
-        }
-
-        // === ИГРОВЫЕ ФУНКЦИИ (ЛОГИКА) ===
-
-        /**
-         * Обновляет состояние игры (логику, физику и т.д.)
-         * @param {number} deltaTime - Время в секундах, прошедшее с последнего обновления.
-         */
-        function update(deltaTime) {
-            // Если открыто меню магазина, игрок не должен двигаться и никакой другой логики не должно происходить
-            if (gameState.showShopMenu) {
-                gameState.player.isMoving = false; // Убедиться, что игрок не движется
-                return; 
-            }
-
-            // Движение игрока (комбинированный ввод с клавиатуры и тачскрина)
-            let dx = 0;
-            let dy = 0;
-
-            const currentKeys = { ...gameState.keys, ...gameState.touchKeys }; // Объединяем состояния
-
-            if (currentKeys['ArrowUp'] || currentKeys['KeyW']) {
-                dy -= 1;
-                gameState.player.direction = 'up';
-            }
-            if (currentKeys['ArrowDown'] || currentKeys['KeyS']) {
-                dy += 1;
-                gameState.player.direction = 'down';
-            }
-            if (currentKeys['ArrowLeft'] || currentKeys['KeyA']) {
-                dx -= 1;
-                gameState.player.direction = 'left';
-            }
-            if (currentKeys['ArrowRight'] || currentKeys['KeyD']) {
-                dx += 1;
-                gameState.player.direction = 'right';
-            }
-
-            // Нормализация скорости для диагонального движения
-            if (dx !== 0 && dy !== 0) {
-                const length = Math.sqrt(dx * dx + dy * dy);
-                dx /= length;
-                dy /= length;
-            }
-
-            gameState.player.x += dx * gameState.player.speed * deltaTime;
-            gameState.player.y += dy * gameState.player.speed * deltaTime;
-
-            // Ограничение движения игрока пределами Canvas
-            gameState.player.x = Math.max(0, Math.min(CANVAS_WIDTH - gameState.player.width, gameState.player.x));
-            gameState.player.y = Math.max(0, Math.min(CANVAS_HEIGHT - gameState.player.height, gameState.player.y));
-
-            // Проверка на взаимодействие с объектами
-            gameState.currentInteraction = null; // Сбрасываем текущее взаимодействие
-            for (const obj of gameState.interactiveObjects) {
-                // Простая проверка на столкновение (Bounding Box Collision)
-                if (gameState.player.x < obj.x + obj.width &&
-                    gameState.player.x + gameState.player.width > obj.x &&
-                    gameState.player.y < obj.y + obj.height &&
-                    gameState.player.y + gameState.player.height > obj.y) {
-                    gameState.currentInteraction = obj;
-                    break; // Взаимодействуем только с одним объектом за раз
-                }
-            }
-
-            // Логика для других игровых элементов (НПС, клиенты, взаимодействия) будет здесь
-        }
-
-        /**
-         * Функция для покупки ингредиентов
-         * @param {string} itemType - Тип ингредиента (buns, patties, veggies)
-         * @param {number} quantity - Количество для покупки
-         */
-        function buyIngredient(itemType, quantity) {
-            const prices = {
-                buns: 5,
-                patties: 10,
-                veggies: 3,
-            };
-            const cost = prices[itemType] * quantity;
-
-            if (gameState.money >= cost) {
-                gameState.money -= cost;
-                gameState.ingredients[itemType] += quantity;
-                console.log(`Куплено ${quantity} ${itemType}. Остаток денег: ${gameState.money}`);
-            } else {
-                console.log('Недостаточно денег для покупки!');
-            }
-        }
-
-        /**
-         * Функция для готовки бургера
-         */
-        function cookBurger() {
-            // Требуется: 1 булка, 1 котлета, 1 овощ
-            if (gameState.ingredients.buns >= 1 && gameState.ingredients.patties >= 1 && gameState.ingredients.veggies >= 1) {
-                gameState.ingredients.buns--;
-                gameState.ingredients.patties--;
-                gameState.ingredients.veggies--;
-                gameState.ingredients.burgers++; // Добавляем готовый бургер
-                console.log('Бургер приготовлен!');
-            } else {
-                console.log('Недостаточно ингредиентов для бургера!');
-            }
-        }
-
-
-        // === ФУНКЦИИ ОТРОВКИ (ГРАФИКА) ===
-
-        /**
-         * Универсальная функция для отрисовки пиксельного спрайта из 2D массива.
-         * @param {CanvasRenderingContext2D} ctx - Контекст Canvas.
-         * @param {Array<Array<string>>} spriteData - 2D массив цветов спрайта (например, ['#FF0000', 'T']). 'T' для прозрачного.
-         * @param {number} x - X-координата начала отрисовки.
-         * @param {number} y - Y-координата начала отрисовки.
-         * @param {number} pixelSize - Размер одного "пикселя" спрайта в реальных пикселях Canvas.
-         */
-        function drawPixelSprite(ctx, spriteData, x, y, pixelSize) {
-            for (let row = 0; row < spriteData.length; row++) {
-                for (let col = 0; col < spriteData[row].length; col++) {
-                    const color = spriteData[row][col];
-                    if (color !== 'T') { // Пропускаем прозрачные пиксели
-                        ctx.fillStyle = color;
-                        ctx.fillRect(x + col * pixelSize, y + row * pixelSize, pixelSize, pixelSize);
-                    }
-                }
-            }
-        }
-
-        /**
-         * Отрисовывает основные зоны кафе и мебель с пиксельными деталями.
-         */
-        function drawCafeLayout() {
-            // Отрисовка пола (базовый цвет)
-            CTX.fillStyle = '#333';
-            CTX.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-            // Отрисовка зон (полов)
-            for (const key in gameState.cafeLayout) {
-                const zone = gameState.cafeLayout[key];
-                if (key.endsWith('_floor') || key.endsWith('_area') || key.endsWith('_counter_area') || key.endsWith('_entrance')) {
-                    CTX.fillStyle = zone.color;
-                    CTX.fillRect(zone.x * GRID_SIZE, zone.y * GRID_SIZE, zone.width * GRID_SIZE, zone.height * GRID_SIZE);
-                }
-            }
-            
-            // Добавим текстуры или узоры на полы для большего пиксель-арта
-            // Пример: клетчатый пол в обеденном зале
-            CTX.fillStyle = '#A98D65'; // Более темный оттенок
-            for (let i = gameState.cafeLayout.dining_area_floor.x; i < gameState.cafeLayout.dining_area_floor.x + gameState.cafeLayout.dining_area_floor.width; i++) {
-                for (let j = gameState.cafeLayout.dining_area_floor.y; j < gameState.cafeLayout.dining_area_floor.y + gameState.cafeLayout.dining_area_floor.height; j++) {
-                    if ((i + j) % 2 === 0) {
-                        CTX.fillRect(i * GRID_SIZE, j * GRID_SIZE, GRID_SIZE, GRID_SIZE);
-                    }
-                }
-            }
-
-            // Отрисовка мебели и объектов
-            CTX.strokeStyle = '#444'; // Цвет для границ объектов
-            CTX.lineWidth = 1;
-            for (const key in gameState.cafeLayout) {
-                const obj = gameState.cafeLayout[key];
-                // Пропускаем объекты, которые уже отрисованы как "пол"
-                if (key.endsWith('_floor') || key.endsWith('_area') || key.endsWith('_counter_area') || key.endsWith('_entrance')) {
-                    continue;
-                }
-
-                CTX.fillStyle = obj.color;
-                CTX.fillRect(obj.x, obj.y, obj.width, obj.height);
-                CTX.strokeRect(obj.x, obj.y, obj.width, obj.height); // Обводка для пиксельности
-
-                // Детали для плиты
-                if (key === 'stove' && obj.details) {
-                    CTX.fillStyle = obj.details[0]; // Первый цвет для конфорок
-                    CTX.fillRect(obj.x + GRID_SIZE * 0.2, obj.y + GRID_SIZE * 0.2, GRID_SIZE * 0.6, GRID_SIZE * 0.6);
-                    CTX.fillRect(obj.x + GRID_SIZE * 1.2, obj.y + GRID_SIZE * 0.2, GRID_SIZE * 0.6, GRID_SIZE * 0.6);
-                    CTX.fillRect(obj.x + GRID_SIZE * 0.2, obj.y + GRID_SIZE * 1.2, GRID_SIZE * 0.6, GRID_SIZE * 0.6);
-                    CTX.fillRect(obj.x + GRID_SIZE * 1.2, obj.y + GRID_SIZE * 1.2, GRID_SIZE * 0.6, GRID_SIZE * 0.6);
-                }
-                // Детали для компьютерного стола/монитора
-                if (key === 'computer_monitor') {
-                    CTX.fillStyle = '#0F0'; // Включенный экран
-                    CTX.fillRect(obj.x + GRID_SIZE * 0.1, obj.y + GRID_SIZE * 0.1, obj.width - GRID_SIZE * 0.2, obj.height - GRID_SIZE * 0.2);
-                }
-
-                // Выделение интерактивных объектов
-                if (gameState.interactiveObjects.some(io => io.x === obj.x && io.y === obj.y && io.type !== 'service_counter_delivery')) { // service_counter_delivery - это зона, не отдельный объект
-                    CTX.strokeStyle = '#FFF'; // Белая рамка для интерактивных
-                    CTX.lineWidth = 2;
-                    CTX.strokeRect(obj.x, obj.y, obj.width, obj.height);
-                    CTX.lineWidth = 1; // Возвращаем стандарт
-                    CTX.strokeStyle = '#444';
-                }
-            }
-        }
-
-
-        /**
-         * Отрисовывает все игровые элементы на Canvas.
-         */
-        function draw() {
-            // Очищаем Canvas перед каждой отрисовкой
-            CTX.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-            // Рисуем макет кафе (полы, стены, мебель)
-            drawCafeLayout();
-
-            // Рисуем игрока с помощью спрайта
-            drawPixelSprite(CTX, playerSprite, gameState.player.x, gameState.player.y, GRID_SIZE / 2); // Размер пикселя для спрайта
-
-            // Отрисовка подсказки для взаимодействия
-            if (gameState.currentInteraction && !gameState.showShopMenu) {
-                CTX.fillStyle = '#FFF';
-                CTX.font = `bold ${GRID_SIZE - 4}px monospace`;
-                CTX.textAlign = 'center';
-                CTX.textBaseline = 'bottom';
-                // Подсказка над объектом
-                CTX.fillText(`${gameState.currentInteraction.label}`, 
-                    gameState.currentInteraction.x + gameState.currentInteraction.width / 2, 
-                    gameState.currentInteraction.y - 2);
-            }
-
-            // Рисуем UI
-            drawUI();
-            
-            // Если меню магазина открыто, рисуем его поверх всего
-            if (gameState.showShopMenu) {
-                drawShopMenu();
-            }
-        }
-
-        /**
-         * Отрисовывает элементы пользовательского интерфейса.
-         */
-        function drawUI() {
-            CTX.fillStyle = '#EEE';
-            CTX.font = `bold ${GRID_SIZE - 2}px 'Press Start 2P', monospace`; 
-            CTX.textAlign = 'left';
-            CTX.textBaseline = 'top';
-
-            CTX.fillText(`Деньги: $${gameState.money}`, GRID_SIZE / 2, GRID_SIZE / 2);
-            CTX.fillText(`День: ${gameState.day}`, GRID_SIZE / 2, GRID_SIZE / 2 + GRID_SIZE);
-            CTX.fillText(`Популярность: ${gameState.popularity}%`, GRID_SIZE / 2, GRID_SIZE / 2 + GRID_SIZE * 2);
-            CTX.fillText(`Ингредиенты: Б-${gameState.ingredients.buns} К-${gameState.ingredients.patties} О-${gameState.ingredients.veggies} Брг-${gameState.ingredients.burgers}`, GRID_SIZE / 2, GRID_SIZE / 2 + GRID_SIZE * 3);
-        }
+        // --- CONFIGURATION ---
+        const ADMIN_PASSWORD = 'admin123';
         
-        /**
-         * Отрисовывает меню магазина для закупки ингредиентов.
-         */
-        function drawShopMenu() {
-            const menuWidth = CANVAS_WIDTH * 0.7;
-            const menuHeight = CANVAS_HEIGHT * 0.8; // Чуть больше для товаров
-            const menuX = (CANVAS_WIDTH - menuWidth) / 2;
-            const menuY = (CANVAS_HEIGHT - menuHeight) / 2;
+        // --- INITIAL DATA ---
+        const STARTER_PRODUCTS = [
+            { id: 1, name: 'Перфоратор BOSCH Professional', desc: 'Мощный перфоратор для любых видов строительных работ.', price: 12500, category: 'Инструменты', img: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?q=80&w=800&auto=format&fit=crop' },
+            { id: 2, name: 'Цемент М500 (50кг)', desc: 'Высокопрочный цемент для фундамента и несущих конструкций.', price: 650, category: 'Цемент', img: 'https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?q=80&w=800&auto=format&fit=crop' },
+            { id: 3, name: 'Кирпич облицовочный', desc: 'Красный пустотелый кирпич высокого качества.', price: 35, category: 'Кирпич', img: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=800&auto=format&fit=crop' },
+            { id: 4, name: 'Набор саморезов (1000 шт)', desc: 'Универсальные саморезы по дереву и металлу.', price: 850, category: 'Крепеж', img: 'https://images.unsplash.com/photo-1586864387417-f58fd4c50e4e?q=80&w=800&auto=format&fit=crop' }
+        ];
+        const STARTER_CATEGORIES = ['Инструменты', 'Цемент', 'Кирпич', 'Крепеж'];
 
-            // Фон меню
-            CTX.fillStyle = 'rgba(0, 0, 0, 0.9)'; // Более темный фон
-            CTX.fillRect(menuX, menuY, menuWidth, menuHeight);
-            CTX.strokeStyle = '#FFF';
-            CTX.lineWidth = 2;
-            CTX.strokeRect(menuX, menuY, menuWidth, menuHeight);
+        // --- STATE MANAGEMENT ---
+        let products = JSON.parse(localStorage.getItem('products')) || STARTER_PRODUCTS;
+        let categories = JSON.parse(localStorage.getItem('categories')) || STARTER_CATEGORIES;
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        let orders = JSON.parse(localStorage.getItem('orders')) || [];
+        let config = JSON.parse(localStorage.getItem('stroy_config')) || { tgToken: '', tgChatId: '' };
+        let currentFilter = 'Все';
 
-            // Заголовок
-            CTX.fillStyle = '#FFF';
-            CTX.font = `bold ${GRID_SIZE * 1.2}px 'Press Start 2P', monospace`;
-            CTX.textAlign = 'center';
-            CTX.fillText('Магазин Ингредиентов', CANVAS_WIDTH / 2, menuY + GRID_SIZE * 1.5);
-            
-            // Информация о текущих деньгах
-            CTX.font = `${GRID_SIZE - 4}px 'Press Start 2P', monospace`;
-            CTX.fillText(`Ваши деньги: $${gameState.money}`, CANVAS_WIDTH / 2, menuY + GRID_SIZE * 2.5);
-
-            // Список товаров
-            const items = [
-                { type: 'buns', label: 'Булочки', price: 5, quantity: 1, current: gameState.ingredients.buns },
-                { type: 'patties', label: 'Котлеты', price: 10, quantity: 1, current: gameState.ingredients.patties },
-                { type: 'veggies', label: 'Овощи', price: 3, quantity: 1, current: gameState.ingredients.veggies },
-            ];
-
-            let startY = menuY + GRID_SIZE * 4;
-            const itemHeight = GRID_SIZE * 1.5;
-            const buttonWidth = GRID_SIZE * 2.5;
-            const buttonHeight = GRID_SIZE * 1;
-            
-            items.forEach((item, index) => {
-                const itemY = startY + index * itemHeight;
-                CTX.textAlign = 'left';
-                CTX.font = `${GRID_SIZE - 2}px 'Press Start 2P', monospace`;
-                CTX.fillText(`${item.label} (${item.current})`, menuX + GRID_SIZE, itemY);
-                CTX.fillText(`$${item.price} / шт.`, menuX + GRID_SIZE * 7, itemY);
-
-                // Кнопка "Купить"
-                const buyButtonX = menuX + menuWidth - GRID_SIZE - buttonWidth;
-                const buyButtonY = itemY - GRID_SIZE * 0.8;
-                
-                // Рисуем кнопку как прямоугольник
-                CTX.fillStyle = gameState.money >= item.price * item.quantity ? '#28A745' : '#6C757D'; // Зеленый если можно купить, серый иначе
-                CTX.fillRect(buyButtonX, buyButtonY, buttonWidth, buttonHeight);
-                CTX.strokeStyle = '#FFF';
-                CTX.strokeRect(buyButtonX, buyButtonY, buttonWidth, buttonHeight);
-
-                CTX.fillStyle = '#FFF';
-                CTX.textAlign = 'center';
-                CTX.font = `${GRID_SIZE - 4}px 'Press Start 2P', monospace`;
-                CTX.fillText('Купить', buyButtonX + buttonWidth / 2, buyButtonY + buttonHeight * 0.7);
-
-                // Добавляем кликабельную зону для кнопки покупки
-                // (Это только для отрисовки, фактические клики обрабатываются в обработчике touch/mouse)
-                // Для мобильных, нам нужно будет обрабатывать тапы по этим координатам
-            });
-
-            // Инструкция для выхода
-            CTX.fillStyle = '#FFF';
-            CTX.font = `${GRID_SIZE - 4}px 'Press Start 2P', monospace`;
-            CTX.textAlign = 'center';
-            CTX.fillText('Нажмите E или "E" кнопку для выхода', CANVAS_WIDTH / 2, menuY + menuHeight - GRID_SIZE * 1.5);
+        // Save data helper
+        function saveData() {
+            localStorage.setItem('products', JSON.stringify(products));
+            localStorage.setItem('categories', JSON.stringify(categories));
+            localStorage.setItem('cart', JSON.stringify(cart));
+            localStorage.setItem('orders', JSON.stringify(orders));
+            localStorage.setItem('stroy_config', JSON.stringify(config));
+            updateCartCount();
         }
 
-        // Обработчик кликов/тапов для кнопок в меню магазина
-        CANVAS.addEventListener('click', (e) => {
-            if (!gameState.showShopMenu) return;
+        // --- UI ROUTING ---
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId + 'Section').classList.add('active');
+            window.scrollTo(0,0);
+            if(sectionId === 'home') {
+                renderCategoryFilters();
+                renderProducts();
+            }
+            if(sectionId === 'cart') renderCart();
+        }
 
-            const rect = CANVAS.getBoundingClientRect();
-            const scaleX = CANVAS.width / rect.width;
-            const scaleY = CANVAS.height / rect.height;
-            const clientX = (e.clientX - rect.left) * scaleX;
-            const clientY = (e.clientY - rect.top) * scaleY;
+        function showAdmin() {
+            if (sessionStorage.getItem('isAdmin') === 'true') {
+                showSection('adminPanel');
+                renderAdminOrders();
+            } else {
+                showSection('adminLogin');
+            }
+        }
 
-            // Координаты меню
-            const menuWidth = CANVAS_WIDTH * 0.7;
-            const menuHeight = CANVAS_HEIGHT * 0.8;
-            const menuX = (CANVAS_WIDTH - menuWidth) / 2;
-            const menuY = (CANVAS_HEIGHT - menuHeight) / 2;
+        // --- CATALOG LOGIC ---
+        function renderCategoryFilters() {
+            const filters = document.getElementById('categoryFilters');
+            filters.innerHTML = `
+                <button class="cat-btn ${currentFilter === 'Все' ? 'active' : ''}" onclick="filterProducts('Все')">Все</button>
+                ${categories.map(c => `
+                    <button class="cat-btn ${currentFilter === c ? 'active' : ''}" onclick="filterProducts('${c}')">${c}</button>
+                `).join('')}
+            `;
+        }
 
-            const items = [
-                { type: 'buns', label: 'Булочки', price: 5, quantity: 1, current: gameState.ingredients.buns },
-                { type: 'patties', label: 'Котлеты', price: 10, quantity: 1, current: gameState.ingredients.patties },
-                { type: 'veggies', label: 'Овощи', price: 3, quantity: 1, current: gameState.ingredients.veggies },
-            ];
+        function renderProducts() {
+            const grid = document.getElementById('productsGrid');
+            const filtered = currentFilter === 'Все' ? products : products.filter(p => p.category === currentFilter);
+            
+            grid.innerHTML = filtered.map(p => `
+                <div class="product-card animate-fade">
+                    <img src="${p.img || 'https://via.placeholder.com/300x200?text=Нет+фото'}" class="product-img" alt="${p.name}">
+                    <div class="product-info">
+                        <span class="product-cat">${p.category}</span>
+                        <h3 class="product-title">${p.name}</h3>
+                        <p class="product-desc">${p.desc}</p>
+                        <div class="product-footer">
+                            <span class="product-price">${p.price.toLocaleString()} ₽</span>
+                            <button class="add-to-cart" onclick="addToCart(${p.id})">
+                                <i data-lucide="shopping-cart" size="18"></i> В корзину
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
 
-            let startY = menuY + GRID_SIZE * 4;
-            const itemHeight = GRID_SIZE * 1.5;
-            const buttonWidth = GRID_SIZE * 2.5;
-            const buttonHeight = GRID_SIZE * 1;
+        function filterProducts(cat) {
+            currentFilter = cat;
+            renderCategoryFilters();
+            renderProducts();
+        }
 
-            items.forEach((item, index) => {
-                const itemY = startY + index * itemHeight;
-                const buyButtonX = menuX + menuWidth - GRID_SIZE - buttonWidth;
-                const buyButtonY = itemY - GRID_SIZE * 0.8;
+        // --- CART LOGIC ---
+        function addToCart(id) {
+            const product = products.find(p => p.id === id);
+            const inCart = cart.find(item => item.id === id);
+            
+            if (inCart) {
+                inCart.qty++;
+            } else {
+                cart.push({ ...product, qty: 1 });
+            }
+            saveData();
+            showToast('Товар добавлен в корзину');
+        }
 
-                // Проверяем, был ли клик по кнопке "Купить"
-                if (clientX >= buyButtonX && clientX <= buyButtonX + buttonWidth &&
-                    clientY >= buyButtonY && clientY <= buyButtonY + buttonHeight) {
-                    if (gameState.money >= item.price * item.quantity) {
-                        buyIngredient(item.type, item.quantity);
-                    } else {
-                        console.log('Недостаточно денег!');
-                    }
-                }
-            });
-        });
+        function updateCartCount() {
+            const count = cart.reduce((sum, item) => sum + item.qty, 0);
+            document.getElementById('cartCount').innerText = count;
+        }
 
+        function renderCart() {
+            const list = document.getElementById('cartItemsList');
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            
+            if (cart.length === 0) {
+                list.innerHTML = `<div style="text-align:center; padding: 3rem;">
+                    <i data-lucide="shopping-bag" size="48" style="color: var(--border); margin-bottom: 1rem;"></i>
+                    <p>Ваша корзина пуста</p>
+                </div>`;
+            } else {
+                list.innerHTML = cart.map(item => `
+                    <div class="cart-item">
+                        <img src="${item.img || 'https://via.placeholder.com/80'}" alt="${item.name}">
+                        <div>
+                            <h4>${item.name}</h4>
+                            <p style="color: var(--text-muted); font-size: 0.9rem;">${item.price.toLocaleString()} ₽ / шт</p>
+                        </div>
+                        <div class="cart-item-qty">
+                            <button class="qty-btn" onclick="updateQty(${item.id}, -1)">-</button>
+                            <span>${item.qty}</span>
+                            <button class="qty-btn" onclick="updateQty(${item.id}, 1)">+</button>
+                        </div>
+                        <button class="remove-btn" onclick="removeFromCart(${item.id})">
+                            <i data-lucide="trash-2" size="18"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+            
+            document.getElementById('summarySubtotal').innerText = subtotal.toLocaleString() + ' ₽';
+            document.getElementById('summaryTotal').innerText = subtotal.toLocaleString() + ' ₽';
+            lucide.createIcons();
+        }
 
-        /**
-         * Главный игровой цикл.
-         * @param {DOMHighResTimeStamp} currentTime - Время, предоставленное requestAnimationFrame.
-         */
-        function gameLoop(currentTime) {
-            if (!lastFrameTime) lastFrameTime = currentTime;
-            const deltaTimeMs = currentTime - lastFrameTime;
-            lastFrameTime = currentTime;
+        function updateQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if (item) {
+                item.qty += delta;
+                if (item.qty <= 0) return removeFromCart(id);
+                saveData();
+                renderCart();
+            }
+        }
 
-            accumulator += deltaTimeMs;
+        function removeFromCart(id) {
+            cart = cart.filter(i => i.id !== id);
+            saveData();
+            renderCart();
+        }
 
-            while (accumulator >= FRAME_TIME) {
-                update(FRAME_TIME / 1000); // Передаем deltaTime в секундах
-                accumulator -= FRAME_TIME;
+        function toggleAddressField() {
+            const method = document.getElementById('deliveryMethod').value;
+            document.getElementById('addressField').style.display = method === 'Доставка' ? 'block' : 'none';
+        }
+
+        async function handleCheckout(event) {
+            event.preventDefault();
+            if (cart.length === 0) return alert('Корзина пуста');
+
+            const order = {
+                id: Date.now(),
+                date: new Date().toLocaleString(),
+                customer: {
+                    name: document.getElementById('custName').value,
+                    phone: document.getElementById('custPhone').value,
+                    address: document.getElementById('custAddress').value,
+                    method: document.getElementById('deliveryMethod').value
+                },
+                items: [...cart],
+                subtotal: cart.reduce((sum, item) => sum + (item.price * item.qty), 0),
+                deliveryCost: 0,
+                status: 'Новый'
+            };
+
+            orders.push(order);
+            
+            // Send to TG
+            await sendOrderToTG(order);
+
+            // Finalize
+            cart = [];
+            saveData();
+            alert('Заказ принят! Менеджер свяжется с вами для согласования стоимости доставки');
+            showSection('home');
+            event.target.reset();
+        }
+
+        async function sendOrderToTG(order) {
+            if (!config.tgToken || !config.tgChatId) return;
+
+            const itemsStr = order.items.map(i => `${i.name} (${i.qty} шт) - ${i.price * i.qty} ₽`).join('\n');
+            const text = `📦 НОВЫЙ ЗАКАЗ #${order.id}\n\n` +
+                         `👤 Покупатель: ${order.customer.name}\n` +
+                         `📞 Телефон: ${order.customer.phone}\n` +
+                         `🚚 Способ: ${order.customer.method}\n` +
+                         (order.customer.address ? `📍 Адрес: ${order.customer.address}\n` : '') +
+                         `\n🛒 Товары:\n${itemsStr}\n\n` +
+                         `💰 Итого: ${order.subtotal} ₽`;
+
+            try {
+                await fetch(`https://api.telegram.org/bot${config.tgToken}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: config.tgChatId, text: text })
+                });
+            } catch (e) {
+                console.error('TG Send Error:', e);
+            }
+        }
+
+        // --- ADMIN LOGIC ---
+        function handleAdminLogin(event) {
+            event.preventDefault();
+            const pass = document.getElementById('adminPass').value;
+            if (pass === ADMIN_PASSWORD) {
+                sessionStorage.setItem('isAdmin', 'true');
+                showAdmin();
+            } else {
+                alert('Неверный пароль');
+            }
+        }
+
+        function logoutAdmin() {
+            sessionStorage.removeItem('isAdmin');
+            showSection('home');
+        }
+
+        function switchAdminTab(tab, el) {
+            document.querySelectorAll('.admin-tab').forEach(t => t.style.display = 'none');
+            document.querySelectorAll('.admin-nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById('admin' + tab.charAt(0).toUpperCase() + tab.slice(1) + 'Tab').style.display = 'block';
+            el.classList.add('active');
+            
+            if (tab === 'orders') renderAdminOrders();
+            if (tab === 'products') renderAdminProducts();
+            if (tab === 'categories') renderAdminCategories();
+            if (tab === 'settings') {
+                document.getElementById('tgToken').value = config.tgToken;
+                document.getElementById('tgChatId').value = config.tgChatId;
+            }
+        }
+
+        function addCategory() {
+            const input = document.getElementById('newCatNameInput');
+            const name = input.value.trim();
+            if (name && !categories.includes(name)) {
+                categories.push(name);
+                saveData();
+                input.value = '';
+                renderAdminCategories();
+                showToast('Категория добавлена');
+            }
+        }
+
+        function removeCategory(name) {
+            if (confirm(`Удалить категорию "${name}"?`)) {
+                categories = categories.filter(c => c !== name);
+                saveData();
+                renderAdminCategories();
+            }
+        }
+
+        function renderAdminCategories() {
+            const list = document.getElementById('adminCategoriesList');
+            list.innerHTML = categories.map(c => `
+                <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-color); padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border);">
+                    <span>${c}</span>
+                    <button class="qty-btn" onclick="removeCategory('${c}')"><i data-lucide="trash-2" size="16"></i></button>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function saveAdminSettings() {
+            config.tgToken = document.getElementById('tgToken').value;
+            config.tgChatId = document.getElementById('tgChatId').value;
+            saveData();
+            showToast('Настройки сохранены');
+        }
+
+        function renderAdminOrders() {
+            const list = document.getElementById('adminOrdersList');
+            list.innerHTML = orders.slice().reverse().map(o => `
+                <tr>
+                    <td>
+                        <small>${o.id}</small><br>
+                        ${o.date}
+                    </td>
+                    <td>
+                        <strong>${o.customer.name}</strong><br>
+                        ${o.customer.phone}<br>
+                        <small>${o.customer.method} ${o.customer.address ? '/ ' + o.customer.address : ''}</small>
+                    </td>
+                    <td><strong>${(o.subtotal + (o.deliveryCost || 0)).toLocaleString()} ₽</strong></td>
+                    <td>
+                        ${o.customer.method === 'Доставка' ? `
+                            <div class="delivery-input-group">
+                                <input type="number" class="delivery-input" value="${o.deliveryCost || 0}" id="del_${o.id}">
+                                <button class="qty-btn" onclick="updateDelivery(${o.id})"><i data-lucide="check" size="16"></i></button>
+                            </div>
+                        ` : '—'}
+                    </td>
+                    <td><span class="order-badge ${o.status === 'Новый' ? 'badge-pending' : 'badge-success'}">${o.status}</span></td>
+                    <td>
+                        <button class="qty-btn" onclick="deleteOrder(${o.id})"><i data-lucide="trash" size="18"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function updateDelivery(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            const val = parseInt(document.getElementById('del_'+orderId).value) || 0;
+            order.deliveryCost = val;
+            order.status = 'Рассчитан';
+            saveData();
+            renderAdminOrders();
+            showToast('Стоимость доставки обновлена');
+        }
+
+        function deleteOrder(id) {
+            if(confirm('Удалить заказ?')) {
+                orders = orders.filter(o => o.id !== id);
+                saveData();
+                renderAdminOrders();
+            }
+        }
+
+        function renderAdminProducts() {
+            const list = document.getElementById('adminProductsList');
+            list.innerHTML = products.map(p => `
+                <tr>
+                    <td><img src="${p.img}" style="width:50px; height:50px; object-fit:cover; border-radius:4px;"></td>
+                    <td>${p.name}</td>
+                    <td>${p.category}</td>
+                    <td>${p.price.toLocaleString()} ₽</td>
+                    <td>
+                        <button class="qty-btn" onclick="openProductModal(${p.id})"><i data-lucide="edit" size="18"></i></button>
+                        <button class="qty-btn" onclick="deleteProduct(${p.id})"><i data-lucide="trash" size="18"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function deleteProduct(id) {
+            if(confirm('Удалить этот товар?')) {
+                products = products.filter(p => p.id !== id);
+                saveData();
+                renderAdminProducts();
+            }
+        }
+
+        // --- MODAL LOGIC ---
+        function handleImageUpload(input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('pImg').value = e.target.result;
+                    showToast('Изображение загружено');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function openProductModal(id = null) {
+            const modal = document.getElementById('productModal');
+            const form = document.getElementById('productForm');
+            const catSelect = document.getElementById('pCategory');
+            
+            catSelect.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+            
+            modal.style.display = 'flex';
+            
+            if (id) {
+                const p = products.find(item => item.id === id);
+                document.getElementById('modalTitle').innerText = 'Редактировать товар';
+                document.getElementById('editProductId').value = p.id;
+                document.getElementById('pName').value = p.name;
+                document.getElementById('pPrice').value = p.price;
+                document.getElementById('pCategory').value = p.category;
+                document.getElementById('pDesc').value = p.desc;
+                document.getElementById('pImg').value = p.img;
+            } else {
+                document.getElementById('modalTitle').innerText = 'Добавить товар';
+                form.reset();
+                document.getElementById('editProductId').value = '';
+            }
+        }
+
+        function closeProductModal() {
+            document.getElementById('productModal').style.display = 'none';
+        }
+
+        function handleProductSubmit(event) {
+            event.preventDefault();
+            const id = document.getElementById('editProductId').value;
+            const newProduct = {
+                id: id ? parseInt(id) : Date.now(),
+                name: document.getElementById('pName').value,
+                price: parseInt(document.getElementById('pPrice').value),
+                category: document.getElementById('pCategory').value,
+                desc: document.getElementById('pDesc').value,
+                img: document.getElementById('pImg').value
+            };
+
+            if (id) {
+                const index = products.findIndex(p => p.id === parseInt(id));
+                products[index] = newProduct;
+            } else {
+                products.push(newProduct);
             }
 
-            draw();
-            requestAnimationFrame(gameLoop);
+            saveData();
+            closeProductModal();
+            renderAdminProducts();
+            showToast('Товар сохранен');
         }
 
-        // Запуск игры
-        gameLoop();
+        // --- HELPERS ---
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Initial update
+        updateCartCount();
+        renderCategoryFilters();
+        renderProducts();
+        lucide.createIcons();
     </script>
 </body>
 </html>
