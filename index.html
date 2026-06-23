@@ -21,548 +21,117 @@
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
 
         body {
             background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 50% -20%, rgba(255, 107, 0, 0.15) 0%, transparent 50%),
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 100% 100%, 50px 50px, 50px 50px;
+            background-attachment: fixed;
             color: var(--text-main);
             line-height: 1.6;
             overflow-x: hidden;
+            min-height: 100vh;
         }
 
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade { animation: fadeIn 0.5s ease forwards; }
 
-        .animate-fade {
-            animation: fadeIn 0.5s ease forwards;
-        }
-
-        /* Layout */
         header {
             background-color: rgba(10, 10, 10, 0.8);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            padding: 1rem 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--primary);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .nav-actions {
-            display: flex;
-            gap: 1.5rem;
-            align-items: center;
-        }
-
-        .nav-btn {
-            background: none;
-            border: none;
-            color: var(--text-main);
-            cursor: pointer;
-            position: relative;
-            transition: var(--transition);
-        }
-
-        .nav-btn:hover {
-            color: var(--primary);
-        }
-
-        .cart-count {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background-color: var(--primary);
-            color: white;
-            font-size: 0.7rem;
-            padding: 2px 6px;
-            border-radius: 50%;
-            font-weight: bold;
-        }
-
-        main {
-            padding: 2rem 5%;
-            max-width: 1400px;
-            margin: 0 auto;
-            min-height: 80vh;
-        }
-
-        /* Hero */
-        .hero {
-            padding: 4rem 0;
-            text-align: center;
-        }
-
-        .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-        }
-
-        .hero h1 span {
-            color: var(--primary);
-        }
-
-        .hero p {
-            color: var(--text-muted);
-            font-size: 1.2rem;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        /* Filters */
-        .categories {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .cat-btn {
-            padding: 0.6rem 1.5rem;
-            border-radius: 50px;
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            cursor: pointer;
-            transition: var(--transition);
-            font-weight: 500;
-        }
-
-        .cat-btn.active, .cat-btn:hover {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: white;
-        }
-
-        /* Products Grid */
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 2rem;
-        }
-
-        .product-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-            transition: var(--transition);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .product-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--primary);
-            box-shadow: 0 10px 30px rgba(255, 107, 0, 0.1);
-        }
-
-        .product-img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            background: #1a1a1a;
-        }
-
-        .product-info {
-            padding: 1.5rem;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .product-cat {
-            color: var(--primary);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .product-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .product-desc {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-bottom: 1.5rem;
-            flex-grow: 1;
-        }
-
-        .product-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .product-price {
-            font-size: 1.3rem;
-            font-weight: 800;
-        }
-
-        .add-to-cart {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: var(--transition);
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .add-to-cart:hover {
-            background: var(--primary-hover);
-        }
-
-        /* Cart & Admin Sections */
-        .section {
-            display: none;
-        }
-
-        .section.active {
-            display: block;
-            animation: fadeIn 0.4s ease;
-        }
-
-        .section-header {
-            margin-bottom: 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .btn-back {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-muted);
-            text-decoration: none;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .btn-back:hover {
-            color: var(--primary);
-        }
-
-        /* Cart View */
-        .cart-container {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 2rem;
-        }
-
-        .cart-items {
-            background: var(--card-bg);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            padding: 1.5rem;
-        }
-
-        .cart-item {
-            display: grid;
-            grid-template-columns: 80px 1fr auto auto;
-            align-items: center;
-            gap: 1.5rem;
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .cart-item:last-child {
-            border-bottom: none;
-        }
-
-        .cart-item img {
-            width: 80px;
-            height: 80px;
-            border-radius: 8px;
-            object-fit: cover;
-        }
-
-        .cart-item-qty {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            background: var(--bg-color);
-            padding: 0.3rem 0.8rem;
-            border-radius: 6px;
-        }
-
-        .qty-btn {
-            background: none;
-            border: none;
-            color: var(--text-main);
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .remove-btn {
-            color: #ff4444;
-            background: none;
-            border: none;
-            cursor: pointer;
-        }
-
-        .checkout-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            height: fit-content;
-            position: sticky;
-            top: 100px;
-        }
-
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-        }
-
-        .summary-total {
-            border-top: 1px solid var(--border);
-            padding-top: 1rem;
-            margin-top: 1rem;
-            font-size: 1.4rem;
-            font-weight: 800;
-        }
-
-        /* Form */
-        .form-group {
-            margin-bottom: 1.2rem;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            background: var(--bg-color);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: white;
-            font-size: 1rem;
-            transition: var(--transition);
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .btn-submit {
-            width: 100%;
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 1rem;
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: var(--transition);
-            margin-top: 1rem;
-        }
-
-        .btn-submit:hover {
-            background: var(--primary-hover);
-        }
-
-        /* Admin Styles */
-        .admin-login {
-            max-width: 400px;
-            margin: 100px auto;
-            background: var(--card-bg);
-            padding: 2rem;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            text-align: center;
-        }
-
-        .admin-panel-content {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 2rem;
-        }
-
-        .admin-sidebar {
-            background: var(--card-bg);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            padding: 1rem;
-            height: fit-content;
-        }
-
-        .admin-nav-item {
-            padding: 0.8rem 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .admin-nav-item:hover, .admin-nav-item.active {
-            background: var(--primary);
-            color: white;
-        }
-
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: var(--card-bg);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-        }
-
-        .admin-table th, .admin-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .admin-table th {
-            background: #1a1a1a;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        .order-badge {
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-
-        .badge-pending { background: #3b82f6; }
-        .badge-success { background: #10b981; }
-
-        .delivery-input-group {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
-
-        .delivery-input {
-            width: 100px;
-            padding: 5px;
-        }
-
-        /* Modal Overlay */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            backdrop-filter: blur(5px);
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            padding: 2rem;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            max-width: 600px;
-            width: 90%;
-            position: relative;
-        }
-
-        .close-modal {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            cursor: pointer;
-            color: var(--text-muted);
-        }
-
-        /* Toast */
-        #toast {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: var(--primary);
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 8px;
-            font-weight: 600;
-            transform: translateY(150%);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 2000;
-        }
-
-        #toast.show {
-            transform: translateY(0);
-        }
+            position: sticky; top: 0; z-index: 100;
+            padding: 0.8rem 5%;
+            display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+        }
+
+        .logo-container { grid-column: 2; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .logo { font-size: 1.8rem; font-weight: 900; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 0.7rem; text-transform: uppercase; letter-spacing: 2px; }
+        .slogan { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 4px; margin-top: -2px; font-weight: 400; }
+
+        .nav-actions { grid-column: 3; justify-self: end; display: flex; gap: 1.5rem; align-items: center; }
+        .nav-btn { background: none; border: none; color: var(--text-main); cursor: pointer; position: relative; transition: var(--transition); }
+        .nav-btn:hover { color: var(--primary); }
+        .cart-count { position: absolute; top: -8px; right: -8px; background-color: var(--primary); color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 50%; font-weight: bold; }
+
+        main { padding: 2rem 5%; max-width: 1400px; margin: 0 auto; min-height: 80vh; }
+        .hero { padding: 4rem 0; text-align: center; }
+        .hero h1 { font-size: 3.5rem; font-weight: 800; margin-bottom: 1rem; }
+        .hero h1 span { color: var(--primary); }
+        .hero p { color: var(--text-muted); font-size: 1.2rem; max-width: 600px; margin: 0 auto; }
+
+        .categories { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; justify-content: center; }
+        .cat-btn { padding: 0.6rem 1.5rem; border-radius: 50px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); cursor: pointer; transition: var(--transition); font-weight: 500; }
+        .cat-btn.active, .cat-btn:hover { background: var(--primary); border-color: var(--primary); color: white; }
+
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; }
+        .product-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: var(--transition); display: flex; flex-direction: column; }
+        .product-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 30px rgba(255, 107, 0, 0.1); }
+        .product-img { width: 100%; height: 200px; object-fit: cover; background: #1a1a1a; }
+        .product-info { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
+        .product-cat { color: var(--primary); font-size: 0.8rem; text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem; }
+        .product-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .product-desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; flex-grow: 1; }
+        .product-footer { display: flex; justify-content: space-between; align-items: center; }
+        .product-price { font-size: 1.3rem; font-weight: 800; }
+
+        .add-to-cart { background: var(--primary); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; transition: var(--transition); font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+        .section { display: none; }
+        .section.active { display: block; animation: fadeIn 0.4s ease; }
+
+        .cart-container { display: grid; grid-template-columns: 1fr 350px; gap: 2rem; }
+        .cart-items { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); padding: 1.5rem; }
+        .cart-item { display: grid; grid-template-columns: 80px 1fr auto auto; align-items: center; gap: 1.5rem; padding: 1rem 0; border-bottom: 1px solid var(--border); }
+        .cart-item img { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; }
+        .cart-item-qty { display: flex; align-items: center; gap: 1rem; background: var(--bg-color); padding: 0.3rem 0.8rem; border-radius: 6px; }
+        .remove-btn { color: #ff4444; background: none; border: none; cursor: pointer; }
+
+        .checkout-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; height: fit-content; position: sticky; top: 100px; }
+        .form-group { margin-bottom: 1.2rem; }
+        input, select, textarea { width: 100%; padding: 0.8rem 1rem; background: var(--bg-color); border: 1px solid var(--border); border-radius: 8px; color: white; transition: var(--transition); }
+        .btn-submit { width: 100%; background: var(--primary); color: white; border: none; padding: 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; transition: var(--transition); }
+
+        .admin-login { max-width: 400px; margin: 100px auto; background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
+        .admin-panel-content { display: grid; grid-template-columns: 300px 1fr; gap: 2rem; }
+        .admin-sidebar { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); padding: 1rem; height: fit-content; }
+        .admin-nav-item { padding: 0.8rem 1rem; border-radius: 8px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem; }
+        .admin-nav-item.active { background: var(--primary); color: white; }
+        .admin-table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+        .admin-table th, .admin-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px); }
+        .modal-content { background: var(--card-bg); padding: 2rem; border-radius: 16px; border: 1px solid var(--border); max-width: 600px; width: 90%; position: relative; }
+        #toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--primary); color: white; padding: 1rem 2rem; border-radius: 8px; transform: translateY(150%); transition: transform 0.4s; z-index: 2000; }
+        #toast.show { transform: translateY(0); }
 
-        /* Mobile Adjustments */
         @media (max-width: 768px) {
-            .cart-container, .admin-panel-content {
-                grid-template-columns: 1fr;
-            }
-            .hero h1 { font-size: 2.2rem; }
-            header { padding: 1rem 1rem; }
-            .admin-sidebar { display: flex; overflow-x: auto; gap: 0.5rem; }
-            .admin-nav-item { white-space: nowrap; }
-            .cart-item { grid-template-columns: 60px 1fr; gap: 1rem; }
-            .cart-item-qty, .remove-btn { grid-column: span 2; justify-self: start; }
+            .cart-container, .admin-panel-content { grid-template-columns: 1fr; }
+            header { padding: 1rem; grid-template-columns: 1fr auto; gap: 1rem; }
+            .logo-container { grid-column: 1; align-items: flex-start; text-align: left; }
+            .logo { font-size: 1.4rem; } .slogan { font-size: 0.6rem; letter-spacing: 2px; }
+            .nav-actions { grid-column: 2; }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <a href="#" class="logo" onclick="showSection('home')">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 10l9-8 9 8v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V10z"></path>
-                <path d="M15 2h3v5"></path>
-                <path d="M9 22V12h6v10"></path>
-            </svg>
-            Строй дом
-        </a>
+        <div></div>
+        <div class="logo-container">
+            <a href="#" class="logo" onclick="showSection('home')">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 10l9-8 9 8v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V10z"></path>
+                    <path d="M15 2h3v5"></path>
+                    <path d="M9 22V12h6v10"></path>
+                </svg>
+                Строй дом
+            </a>
+            <span class="slogan">мы строим мечты</span>
+        </div>
         <div class="nav-actions">
             <button class="nav-btn" onclick="showSection('cart')">
                 <i data-lucide="shopping-cart"></i>
@@ -575,679 +144,175 @@
     </header>
 
     <main id="mainContent">
-        <!-- Home Section -->
         <section id="homeSection" class="section active">
             <div class="hero animate-fade">
-                <h1>Мы строим <span>мечты</span></h1>
-                <p>Оптово-Розничный магазин строительных товаров по самым лучшим ценам и гарантией за товар.</p>
+                <h1>Стройте <span>Надежно</span></h1>
+                <p>Лучшие стройматериалы в один клик. Качество и скорость.</p>
             </div>
-
-            <div class="categories" id="categoryFilters">
-                <!-- Injected by JS -->
-            </div>
-
-            <div class="products-grid" id="productsGrid">
-                <!-- Products injected by JS -->
-            </div>
+            <div class="categories" id="categoryFilters"></div>
+            <div class="products-grid" id="productsGrid"></div>
         </section>
 
-        <!-- Cart Section -->
         <section id="cartSection" class="section">
-            <div class="section-header">
-                <a class="btn-back" onclick="showSection('home')"><i data-lucide="arrow-left"></i> Вернуться к покупкам</a>
-                <h2>Ваша корзина</h2>
-            </div>
-            <div class="cart-container" id="cartContainer">
-                <div class="cart-items" id="cartItemsList">
-                    <!-- Cart items injected by JS -->
-                </div>
+            <div class="section-header"><button class="nav-btn" onclick="showSection('home')"><i data-lucide="arrow-left"></i> Назад</button><h2>Корзина</h2></div>
+            <div class="cart-container">
+                <div class="cart-items" id="cartItemsList"></div>
                 <div class="checkout-card">
-                    <h3>Оформление заказа</h3>
-                    <div class="summary-row" style="margin-top: 1.5rem;">
-                        <span>Товары:</span>
-                        <span id="summarySubtotal">0 ₽</span>
-                    </div>
-                    <div class="summary-total">
-                        <div class="summary-row">
-                            <span>Итого:</span>
-                            <span id="summaryTotal">0 ₽</span>
-                        </div>
-                    </div>
-                    
-                    <form id="checkoutForm" onsubmit="handleCheckout(event)" style="margin-top: 1.5rem;">
+                    <h3>Оформление</h3>
+                    <div id="summaryTotal" style="font-size: 1.5rem; font-weight: 800; margin: 1rem 0;">0 ₽</div>
+                    <form onsubmit="handleCheckout(event)">
+                        <div class="form-group"><input type="text" id="custName" required placeholder="Имя"></div>
+                        <div class="form-group"><input type="tel" id="custPhone" required placeholder="Телефон"></div>
                         <div class="form-group">
-                            <label for="custName">Ваше имя</label>
-                            <input type="text" id="custName" required placeholder="Иван Иванов">
-                        </div>
-                        <div class="form-group">
-                            <label for="custPhone">Телефон</label>
-                            <input type="tel" id="custPhone" required placeholder="+7 (999) 000-00-00">
-                        </div>
-                        <div class="form-group">
-                            <label for="deliveryMethod">Способ получения</label>
                             <select id="deliveryMethod" onchange="toggleAddressField()">
                                 <option value="Самовывоз">Самовывоз</option>
                                 <option value="Доставка">Доставка</option>
                             </select>
                         </div>
-                        <div class="form-group" id="addressField" style="display: none;">
-                            <label for="custAddress">Адрес доставки</label>
-                            <textarea id="custAddress" rows="2" placeholder="Улица, дом, квартира/офис"></textarea>
-                        </div>
-                        <button type="submit" class="btn-submit">ОФОРМИТЬ ЗАКАЗ</button>
+                        <div class="form-group" id="addressField" style="display: none;"><textarea id="custAddress" placeholder="Адрес"></textarea></div>
+                        <button type="submit" class="btn-submit">ЗАКАЗАТЬ</button>
                     </form>
                 </div>
             </div>
         </section>
 
-        <!-- Admin Login Section -->
         <section id="adminLoginSection" class="section">
             <div class="admin-login">
-                <i data-lucide="lock" size="48" style="color: var(--primary); margin-bottom: 1rem;"></i>
-                <h2>Вход для персонала</h2>
-                <p style="color: var(--text-muted); margin-bottom: 2rem;">Введите пароль для доступа к управлению</p>
+                <h2>Админ-вход</h2>
                 <form onsubmit="handleAdminLogin(event)">
-                    <div class="form-group">
-                        <input type="password" id="adminPass" placeholder="Пароль" required>
-                    </div>
-                    <button type="submit" class="btn-submit">ВОЙТИ</button>
-                    <button type="button" class="btn-back" style="margin: 1rem auto; background:none; border:none;" onclick="showSection('home')">На главную</button>
+                    <div class="form-group"><input type="password" id="adminPass" placeholder="Пароль admin123" required></div>
+                    <button type="submit" class="btn-submit">Войти</button>
                 </form>
             </div>
         </section>
 
-        <!-- Admin Panel Section -->
         <section id="adminPanelSection" class="section">
-            <div class="section-header">
-                <h2>Панель администратора</h2>
-                <button class="cat-btn" onclick="logoutAdmin()">Выйти</button>
-            </div>
-            
+            <div class="section-header"><h2>Управление</h2><button class="cat-btn" onclick="logoutAdmin()">Выход</button></div>
             <div class="admin-panel-content">
                 <aside class="admin-sidebar">
-                    <div class="admin-nav-item active" onclick="switchAdminTab('orders', this)">
-                        <i data-lucide="package"></i> Заказы
-                    </div>
-                    <div class="admin-nav-item" onclick="switchAdminTab('products', this)">
-                        <i data-lucide="package-search"></i> Товары
-                    </div>
-                    <div class="admin-nav-item" onclick="switchAdminTab('categories', this)">
-                        <i data-lucide="layout-grid"></i> Категории
-                    </div>
-                    <div class="admin-nav-item" onclick="switchAdminTab('settings', this)">
-                        <i data-lucide="settings"></i> Настройки TG
-                    </div>
+                    <div class="admin-nav-item active" onclick="switchAdminTab('orders', this)">Заказы</div>
+                    <div class="admin-nav-item" onclick="switchAdminTab('products', this)">Товары</div>
+                    <div class="admin-nav-item" onclick="switchAdminTab('settings', this)">TG Настройки</div>
                 </aside>
-
                 <div class="admin-main">
-                    <!-- Admin Orders Tab -->
-                    <div id="adminOrdersTab" class="admin-tab">
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>ID / Дата</th>
-                                    <th>Покупатель</th>
-                                    <th>Сумма</th>
-                                    <th>Доставка</th>
-                                    <th>Статус</th>
-                                    <th>Действие</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminOrdersList">
-                                <!-- Orders injected by JS -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Admin Products Tab -->
-                    <div id="adminProductsTab" class="admin-tab" style="display:none;">
-                        <div style="display:flex; justify-content: space-between; margin-bottom: 1rem;">
-                            <h3>Список товаров</h3>
-                            <button class="add-to-cart" onclick="openProductModal()"><i data-lucide="plus"></i> Добавить</button>
-                        </div>
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>Фото</th>
-                                    <th>Название</th>
-                                    <th>Категория</th>
-                                    <th>Цена</th>
-                                    <th>Действие</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminProductsList">
-                                <!-- Products injected by JS -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Admin Categories Tab -->
-                    <div id="adminCategoriesTab" class="admin-tab" style="display:none;">
-                        <div style="max-width: 500px; background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border);">
-                            <h3>Управление категориями</h3>
-                            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Добавляйте или удаляйте категории товаров.</p>
-                            <div class="form-group">
-                                <label for="newCatNameInput">Новая категория</label>
-                                <div style="display: flex; gap: 0.5rem;">
-                                    <input type="text" id="newCatNameInput" placeholder="Название...">
-                                    <button class="add-to-cart" onclick="addCategory()">Добавить</button>
-                                </div>
-                            </div>
-                            <div id="adminCategoriesList" style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                                <!-- Categories injected by JS -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Admin Settings Tab -->
-                    <div id="adminSettingsTab" class="admin-tab" style="display:none;">
-                        <div style="max-width: 500px; background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border);">
-                            <h3>Интеграция с Telegram</h3>
-                            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Настройте бота, чтобы мгновенно получать уведомления о заказах.</p>
-                            <div class="form-group">
-                                <label>Telegram Bot Token</label>
-                                <input type="password" id="tgToken" placeholder="1234567890:ABC...">
-                            </div>
-                            <div class="form-group">
-                                <label>Chat ID</label>
-                                <input type="text" id="tgChatId" placeholder="-100...">
-                            </div>
-                            <button class="btn-submit" onclick="saveAdminSettings()">СОХРАНИТЬ НАСТРОЙКИ</button>
-                        </div>
-                    </div>
+                    <div id="adminOrdersTab" class="admin-tab"><table class="admin-table"><thead><tr><th>ID</th><th>Клиент</th><th>Сумма</th><th>Действие</th></tr></thead><tbody id="adminOrdersList"></tbody></table></div>
+                    <div id="adminProductsTab" class="admin-tab" style="display:none;"><button class="add-to-cart" onclick="openProductModal()" style="margin-bottom:1rem">Добавить товар</button><table class="admin-table"><thead><tr><th>Фото</th><th>Название</th><th>Цена</th><th>Действие</th></tr></thead><tbody id="adminProductsList"></tbody></table></div>
+                    <div id="adminSettingsTab" class="admin-tab" style="display:none;"><div class="form-group"><label>Bot Token</label><input type="password" id="tgToken"></div><div class="form-group"><label>Chat ID</label><input type="text" id="tgChatId"></div><button class="btn-submit" onclick="saveAdminSettings()">Сохранить</button></div>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Product Modal -->
     <div class="modal-overlay" id="productModal">
         <div class="modal-content">
             <i data-lucide="x" class="close-modal" onclick="closeProductModal()"></i>
-            <h2 id="modalTitle">Добавить товар</h2>
-            <form id="productForm" onsubmit="handleProductSubmit(event)" style="margin-top: 1.5rem;">
-                <input type="hidden" id="editProductId">
-                <div class="form-group">
-                    <label for="pName">Название</label>
-                    <input type="text" id="pName" required>
-                </div>
-                <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div class="form-group">
-                        <label for="pPrice">Цена (₽)</label>
-                        <input type="number" id="pPrice" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="pCategory">Категория</label>
-                        <select id="pCategory">
-                            <!-- Injected by JS -->
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="pDesc">Описание</label>
-                    <textarea id="pDesc" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="pImg">Ссылка на фото</label>
-                    <input type="url" id="pImg" placeholder="https://...">
-                </div>
-                <div class="form-group">
-                    <label>Или загрузите файл</label>
-                    <input type="file" id="pImageFile" accept="image/*" onchange="handleImageUpload(this)">
-                    <small style="color: var(--text-muted);">Изображение будет сохранено локально</small>
-                </div>
-                <button type="submit" class="btn-submit">СОХРАНИТЬ</button>
+            <h2>Новый товар</h2>
+            <form onsubmit="handleProductSubmit(event)">
+                <div class="form-group"><input type="text" id="pName" required placeholder="Название"></div>
+                <div class="form-group"><input type="number" id="pPrice" required placeholder="Цена"></div>
+                <div class="form-group"><select id="pCategory"><option value="Инструменты">Инструменты</option><option value="Цемент">Цемент</option></select></div>
+                <div class="form-group"><textarea id="pDesc" placeholder="Описание"></textarea></div>
+                <div class="form-group"><input type="url" id="pImg" placeholder="Фото URL"></div>
+                <button type="submit" class="btn-submit">Сохранить</button>
             </form>
         </div>
     </div>
 
-    <div id="toast">Уведомление</div>
+    <div id="toast"></div>
 
     <script>
-        // --- CONFIGURATION ---
         const ADMIN_PASSWORD = 'admin123';
-        
-        // --- INITIAL DATA ---
         const STARTER_PRODUCTS = [
-            { id: 1, name: 'Перфоратор BOSCH Professional', desc: 'Мощный перфоратор для любых видов строительных работ.', price: 12500, category: 'Инструменты', img: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?q=80&w=800&auto=format&fit=crop' },
-            { id: 2, name: 'Цемент М500 (50кг)', desc: 'Высокопрочный цемент для фундамента и несущих конструкций.', price: 650, category: 'Цемент', img: 'https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?q=80&w=800&auto=format&fit=crop' },
-            { id: 3, name: 'Кирпич облицовочный', desc: 'Красный пустотелый кирпич высокого качества.', price: 35, category: 'Кирпич', img: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=800&auto=format&fit=crop' },
-            { id: 4, name: 'Набор саморезов (1000 шт)', desc: 'Универсальные саморезы по дереву и металлу.', price: 850, category: 'Крепеж', img: 'https://images.unsplash.com/photo-1586864387417-f58fd4c50e4e?q=80&w=800&auto=format&fit=crop' }
+            { id: 1, name: 'Перфоратор BOSCH', desc: 'Профессиональный.', price: 12500, category: 'Инструменты', img: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?q=80&w=800&auto=format&fit=crop' },
+            { id: 2, name: 'Цемент М500', desc: 'Надежный.', price: 650, category: 'Цемент', img: 'https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?q=80&w=800&auto=format&fit=crop' }
         ];
-        const STARTER_CATEGORIES = ['Инструменты', 'Цемент', 'Кирпич', 'Крепеж'];
 
-        // --- STATE MANAGEMENT ---
         let products = JSON.parse(localStorage.getItem('products')) || STARTER_PRODUCTS;
-        let categories = JSON.parse(localStorage.getItem('categories')) || STARTER_CATEGORIES;
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
         let orders = JSON.parse(localStorage.getItem('orders')) || [];
         let config = JSON.parse(localStorage.getItem('stroy_config')) || { tgToken: '', tgChatId: '' };
         let currentFilter = 'Все';
 
-        // Save data helper
         function saveData() {
             localStorage.setItem('products', JSON.stringify(products));
-            localStorage.setItem('categories', JSON.stringify(categories));
             localStorage.setItem('cart', JSON.stringify(cart));
             localStorage.setItem('orders', JSON.stringify(orders));
             localStorage.setItem('stroy_config', JSON.stringify(config));
-            updateCartCount();
+            document.getElementById('cartCount').innerText = cart.reduce((s, i) => s + i.qty, 0);
         }
 
-        // --- UI ROUTING ---
-        function showSection(sectionId) {
+        function showSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById(sectionId + 'Section').classList.add('active');
-            window.scrollTo(0,0);
-            if(sectionId === 'home') {
-                renderCategoryFilters();
-                renderProducts();
-            }
-            if(sectionId === 'cart') renderCart();
+            document.getElementById(id + 'Section').classList.add('active');
+            if(id === 'home') { renderFilters(); renderProducts(); }
+            if(id === 'cart') renderCart();
         }
 
-        function showAdmin() {
-            if (sessionStorage.getItem('isAdmin') === 'true') {
-                showSection('adminPanel');
-                renderAdminOrders();
-            } else {
-                showSection('adminLogin');
-            }
-        }
-
-        // --- CATALOG LOGIC ---
-        function renderCategoryFilters() {
-            const filters = document.getElementById('categoryFilters');
-            filters.innerHTML = `
-                <button class="cat-btn ${currentFilter === 'Все' ? 'active' : ''}" onclick="filterProducts('Все')">Все</button>
-                ${categories.map(c => `
-                    <button class="cat-btn ${currentFilter === c ? 'active' : ''}" onclick="filterProducts('${c}')">${c}</button>
-                `).join('')}
-            `;
+        function renderFilters() {
+            const cats = ['Все', ...new Set(products.map(p => p.category))];
+            document.getElementById('categoryFilters').innerHTML = cats.map(c => `<button class="cat-btn ${currentFilter===c?'active':''}" onclick="filterProducts('${c}')">${c}</button>`).join('');
         }
 
         function renderProducts() {
             const grid = document.getElementById('productsGrid');
             const filtered = currentFilter === 'Все' ? products : products.filter(p => p.category === currentFilter);
-            
-            grid.innerHTML = filtered.map(p => `
-                <div class="product-card animate-fade">
-                    <img src="${p.img || 'https://via.placeholder.com/300x200?text=Нет+фото'}" class="product-img" alt="${p.name}">
-                    <div class="product-info">
-                        <span class="product-cat">${p.category}</span>
-                        <h3 class="product-title">${p.name}</h3>
-                        <p class="product-desc">${p.desc}</p>
-                        <div class="product-footer">
-                            <span class="product-price">${p.price.toLocaleString()} ₽</span>
-                            <button class="add-to-cart" onclick="addToCart(${p.id})">
-                                <i data-lucide="shopping-cart" size="18"></i> В корзину
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+            grid.innerHTML = filtered.map(p => `<div class="product-card animate-fade"><img src="${p.img}" class="product-img"><div class="product-info"><span class="product-cat">${p.category}</span><h3>${p.name}</h3><p>${p.price} ₽</p><button class="add-to-cart" onclick="addToCart(${p.id})">В корзину</button></div></div>`).join('');
             lucide.createIcons();
         }
 
-        function filterProducts(cat) {
-            currentFilter = cat;
-            renderCategoryFilters();
-            renderProducts();
-        }
+        function filterProducts(c) { currentFilter = c; renderFilters(); renderProducts(); }
 
-        // --- CART LOGIC ---
         function addToCart(id) {
-            const product = products.find(p => p.id === id);
-            const inCart = cart.find(item => item.id === id);
-            
-            if (inCart) {
-                inCart.qty++;
-            } else {
-                cart.push({ ...product, qty: 1 });
-            }
-            saveData();
-            showToast('Товар добавлен в корзину');
-        }
-
-        function updateCartCount() {
-            const count = cart.reduce((sum, item) => sum + item.qty, 0);
-            document.getElementById('cartCount').innerText = count;
+            const p = products.find(i => i.id === id);
+            const inCart = cart.find(i => i.id === id);
+            if (inCart) inCart.qty++; else cart.push({...p, qty: 1});
+            saveData(); showToast('Добавлено!');
         }
 
         function renderCart() {
-            const list = document.getElementById('cartItemsList');
-            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            
-            if (cart.length === 0) {
-                list.innerHTML = `<div style="text-align:center; padding: 3rem;">
-                    <i data-lucide="shopping-bag" size="48" style="color: var(--border); margin-bottom: 1rem;"></i>
-                    <p>Ваша корзина пуста</p>
-                </div>`;
-            } else {
-                list.innerHTML = cart.map(item => `
-                    <div class="cart-item">
-                        <img src="${item.img || 'https://via.placeholder.com/80'}" alt="${item.name}">
-                        <div>
-                            <h4>${item.name}</h4>
-                            <p style="color: var(--text-muted); font-size: 0.9rem;">${item.price.toLocaleString()} ₽ / шт</p>
-                        </div>
-                        <div class="cart-item-qty">
-                            <button class="qty-btn" onclick="updateQty(${item.id}, -1)">-</button>
-                            <span>${item.qty}</span>
-                            <button class="qty-btn" onclick="updateQty(${item.id}, 1)">+</button>
-                        </div>
-                        <button class="remove-btn" onclick="removeFromCart(${item.id})">
-                            <i data-lucide="trash-2" size="18"></i>
-                        </button>
-                    </div>
-                `).join('');
-            }
-            
-            document.getElementById('summarySubtotal').innerText = subtotal.toLocaleString() + ' ₽';
-            document.getElementById('summaryTotal').innerText = subtotal.toLocaleString() + ' ₽';
-            lucide.createIcons();
+            const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+            document.getElementById('cartItemsList').innerHTML = cart.map(i => `<div class="cart-item"><img src="${i.img}"><div><h4>${i.name}</h4><p>${i.qty} шт.</p></div><button class="remove-btn" onclick="removeFromCart(${i.id})">Удалить</button></div>`).join('');
+            document.getElementById('summaryTotal').innerText = total + ' ₽';
         }
 
-        function updateQty(id, delta) {
-            const item = cart.find(i => i.id === id);
-            if (item) {
-                item.qty += delta;
-                if (item.qty <= 0) return removeFromCart(id);
-                saveData();
-                renderCart();
-            }
-        }
+        function removeFromCart(id) { cart = cart.filter(i => i.id !== id); saveData(); renderCart(); }
+        function toggleAddressField() { document.getElementById('addressField').style.display = document.getElementById('deliveryMethod').value === 'Доставка' ? 'block' : 'none'; }
 
-        function removeFromCart(id) {
-            cart = cart.filter(i => i.id !== id);
-            saveData();
-            renderCart();
-        }
-
-        function toggleAddressField() {
-            const method = document.getElementById('deliveryMethod').value;
-            document.getElementById('addressField').style.display = method === 'Доставка' ? 'block' : 'none';
-        }
-
-        async function handleCheckout(event) {
-            event.preventDefault();
-            if (cart.length === 0) return alert('Корзина пуста');
-
-            const order = {
-                id: Date.now(),
-                date: new Date().toLocaleString(),
-                customer: {
-                    name: document.getElementById('custName').value,
-                    phone: document.getElementById('custPhone').value,
-                    address: document.getElementById('custAddress').value,
-                    method: document.getElementById('deliveryMethod').value
-                },
-                items: [...cart],
-                subtotal: cart.reduce((sum, item) => sum + (item.price * item.qty), 0),
-                deliveryCost: 0,
-                status: 'Новый'
-            };
-
+        async function handleCheckout(e) {
+            e.preventDefault();
+            const order = { id: Date.now(), total: cart.reduce((s, i) => s + (i.price * i.qty), 0), customer: { name: document.getElementById('custName').value } };
             orders.push(order);
-            
-            // Send to TG
-            await sendOrderToTG(order);
-
-            // Finalize
-            cart = [];
-            saveData();
-            alert('Заказ принят! Менеджер свяжется с вами для согласования стоимости доставки');
-            showSection('home');
-            event.target.reset();
+            if(config.tgToken) await fetch(`https://api.telegram.org/bot${config.tgToken}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: config.tgChatId, text: `Заказ на ${order.total} ₽` }) });
+            cart = []; saveData(); alert('Успешно!'); showSection('home');
         }
 
-        async function sendOrderToTG(order) {
-            if (!config.tgToken || !config.tgChatId) return;
+        function handleAdminLogin(e) { e.preventDefault(); if (document.getElementById('adminPass').value === ADMIN_PASSWORD) { sessionStorage.setItem('isAdmin', 'true'); showAdmin(); } else alert('Нет'); }
+        function logoutAdmin() { sessionStorage.removeItem('isAdmin'); showSection('home'); }
+        function showAdmin() { if (sessionStorage.getItem('isAdmin') === 'true') showSection('adminPanel'); else showSection('adminLogin'); }
 
-            const itemsStr = order.items.map(i => `${i.name} (${i.qty} шт) - ${i.price * i.qty} ₽`).join('\n');
-            const text = `📦 НОВЫЙ ЗАКАЗ #${order.id}\n\n` +
-                         `👤 Покупатель: ${order.customer.name}\n` +
-                         `📞 Телефон: ${order.customer.phone}\n` +
-                         `🚚 Способ: ${order.customer.method}\n` +
-                         (order.customer.address ? `📍 Адрес: ${order.customer.address}\n` : '') +
-                         `\n🛒 Товары:\n${itemsStr}\n\n` +
-                         `💰 Итого: ${order.subtotal} ₽`;
-
-            try {
-                await fetch(`https://api.telegram.org/bot${config.tgToken}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: config.tgChatId, text: text })
-                });
-            } catch (e) {
-                console.error('TG Send Error:', e);
-            }
-        }
-
-        // --- ADMIN LOGIC ---
-        function handleAdminLogin(event) {
-            event.preventDefault();
-            const pass = document.getElementById('adminPass').value;
-            if (pass === ADMIN_PASSWORD) {
-                sessionStorage.setItem('isAdmin', 'true');
-                showAdmin();
-            } else {
-                alert('Неверный пароль');
-            }
-        }
-
-        function logoutAdmin() {
-            sessionStorage.removeItem('isAdmin');
-            showSection('home');
-        }
-
-        function switchAdminTab(tab, el) {
-            document.querySelectorAll('.admin-tab').forEach(t => t.style.display = 'none');
-            document.querySelectorAll('.admin-nav-item').forEach(i => i.classList.remove('active'));
-            document.getElementById('admin' + tab.charAt(0).toUpperCase() + tab.slice(1) + 'Tab').style.display = 'block';
+        function switchAdminTab(t, el) {
+            document.querySelectorAll('.admin-tab').forEach(x => x.style.display = 'none');
+            document.querySelectorAll('.admin-nav-item').forEach(x => x.classList.remove('active'));
+            document.getElementById('admin' + t.charAt(0).toUpperCase() + t.slice(1) + 'Tab').style.display = 'block';
             el.classList.add('active');
-            
-            if (tab === 'orders') renderAdminOrders();
-            if (tab === 'products') renderAdminProducts();
-            if (tab === 'categories') renderAdminCategories();
-            if (tab === 'settings') {
-                document.getElementById('tgToken').value = config.tgToken;
-                document.getElementById('tgChatId').value = config.tgChatId;
-            }
+            if(t === 'orders') document.getElementById('adminOrdersList').innerHTML = orders.map(o => `<tr><td>${o.id}</td><td>${o.customer.name}</td><td>${o.total} ₽</td><td><button onclick="deleteOrder(${o.id})">X</button></td></tr>`).join('');
+            if(t === 'products') document.getElementById('adminProductsList').innerHTML = products.map(p => `<tr><td><img src="${p.img}" width="40"></td><td>${p.name}</td><td>${p.price} ₽</td><td><button onclick="deleteProduct(${p.id})">X</button></td></tr>`).join('');
         }
 
-        function addCategory() {
-            const input = document.getElementById('newCatNameInput');
-            const name = input.value.trim();
-            if (name && !categories.includes(name)) {
-                categories.push(name);
-                saveData();
-                input.value = '';
-                renderAdminCategories();
-                showToast('Категория добавлена');
-            }
+        function deleteOrder(id) { orders = orders.filter(o => o.id !== id); saveData(); switchAdminTab('orders', document.querySelector('.admin-nav-item.active')); }
+        function deleteProduct(id) { products = products.filter(p => p.id !== id); saveData(); switchAdminTab('products', document.querySelector('.admin-nav-item.active')); }
+
+        function saveAdminSettings() { config.tgToken = document.getElementById('tgToken').value; config.tgChatId = document.getElementById('tgChatId').value; saveData(); showToast('Ок'); }
+        function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
+        function openProductModal() { document.getElementById('productModal').style.display = 'flex'; }
+        function closeProductModal() { document.getElementById('productModal').style.display = 'none'; }
+        function handleProductSubmit(e) {
+            e.preventDefault();
+            products.push({ id: Date.now(), name: document.getElementById('pName').value, price: document.getElementById('pPrice').value, category: document.getElementById('pCategory').value, img: document.getElementById('pImg').value });
+            saveData(); closeProductModal(); switchAdminTab('products', document.querySelector('.admin-nav-item.active'));
         }
 
-        function removeCategory(name) {
-            if (confirm(`Удалить категорию "${name}"?`)) {
-                categories = categories.filter(c => c !== name);
-                saveData();
-                renderAdminCategories();
-            }
-        }
-
-        function renderAdminCategories() {
-            const list = document.getElementById('adminCategoriesList');
-            list.innerHTML = categories.map(c => `
-                <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-color); padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border);">
-                    <span>${c}</span>
-                    <button class="qty-btn" onclick="removeCategory('${c}')"><i data-lucide="trash-2" size="16"></i></button>
-                </div>
-            `).join('');
-            lucide.createIcons();
-        }
-
-        function saveAdminSettings() {
-            config.tgToken = document.getElementById('tgToken').value;
-            config.tgChatId = document.getElementById('tgChatId').value;
-            saveData();
-            showToast('Настройки сохранены');
-        }
-
-        function renderAdminOrders() {
-            const list = document.getElementById('adminOrdersList');
-            list.innerHTML = orders.slice().reverse().map(o => `
-                <tr>
-                    <td>
-                        <small>${o.id}</small><br>
-                        ${o.date}
-                    </td>
-                    <td>
-                        <strong>${o.customer.name}</strong><br>
-                        ${o.customer.phone}<br>
-                        <small>${o.customer.method} ${o.customer.address ? '/ ' + o.customer.address : ''}</small>
-                    </td>
-                    <td><strong>${(o.subtotal + (o.deliveryCost || 0)).toLocaleString()} ₽</strong></td>
-                    <td>
-                        ${o.customer.method === 'Доставка' ? `
-                            <div class="delivery-input-group">
-                                <input type="number" class="delivery-input" value="${o.deliveryCost || 0}" id="del_${o.id}">
-                                <button class="qty-btn" onclick="updateDelivery(${o.id})"><i data-lucide="check" size="16"></i></button>
-                            </div>
-                        ` : '—'}
-                    </td>
-                    <td><span class="order-badge ${o.status === 'Новый' ? 'badge-pending' : 'badge-success'}">${o.status}</span></td>
-                    <td>
-                        <button class="qty-btn" onclick="deleteOrder(${o.id})"><i data-lucide="trash" size="18"></i></button>
-                    </td>
-                </tr>
-            `).join('');
-            lucide.createIcons();
-        }
-
-        function updateDelivery(orderId) {
-            const order = orders.find(o => o.id === orderId);
-            const val = parseInt(document.getElementById('del_'+orderId).value) || 0;
-            order.deliveryCost = val;
-            order.status = 'Рассчитан';
-            saveData();
-            renderAdminOrders();
-            showToast('Стоимость доставки обновлена');
-        }
-
-        function deleteOrder(id) {
-            if(confirm('Удалить заказ?')) {
-                orders = orders.filter(o => o.id !== id);
-                saveData();
-                renderAdminOrders();
-            }
-        }
-
-        function renderAdminProducts() {
-            const list = document.getElementById('adminProductsList');
-            list.innerHTML = products.map(p => `
-                <tr>
-                    <td><img src="${p.img}" style="width:50px; height:50px; object-fit:cover; border-radius:4px;"></td>
-                    <td>${p.name}</td>
-                    <td>${p.category}</td>
-                    <td>${p.price.toLocaleString()} ₽</td>
-                    <td>
-                        <button class="qty-btn" onclick="openProductModal(${p.id})"><i data-lucide="edit" size="18"></i></button>
-                        <button class="qty-btn" onclick="deleteProduct(${p.id})"><i data-lucide="trash" size="18"></i></button>
-                    </td>
-                </tr>
-            `).join('');
-            lucide.createIcons();
-        }
-
-        function deleteProduct(id) {
-            if(confirm('Удалить этот товар?')) {
-                products = products.filter(p => p.id !== id);
-                saveData();
-                renderAdminProducts();
-            }
-        }
-
-        // --- MODAL LOGIC ---
-        function handleImageUpload(input) {
-            const file = input.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('pImg').value = e.target.result;
-                    showToast('Изображение загружено');
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function openProductModal(id = null) {
-            const modal = document.getElementById('productModal');
-            const form = document.getElementById('productForm');
-            const catSelect = document.getElementById('pCategory');
-            
-            catSelect.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
-            
-            modal.style.display = 'flex';
-            
-            if (id) {
-                const p = products.find(item => item.id === id);
-                document.getElementById('modalTitle').innerText = 'Редактировать товар';
-                document.getElementById('editProductId').value = p.id;
-                document.getElementById('pName').value = p.name;
-                document.getElementById('pPrice').value = p.price;
-                document.getElementById('pCategory').value = p.category;
-                document.getElementById('pDesc').value = p.desc;
-                document.getElementById('pImg').value = p.img;
-            } else {
-                document.getElementById('modalTitle').innerText = 'Добавить товар';
-                form.reset();
-                document.getElementById('editProductId').value = '';
-            }
-        }
-
-        function closeProductModal() {
-            document.getElementById('productModal').style.display = 'none';
-        }
-
-        function handleProductSubmit(event) {
-            event.preventDefault();
-            const id = document.getElementById('editProductId').value;
-            const newProduct = {
-                id: id ? parseInt(id) : Date.now(),
-                name: document.getElementById('pName').value,
-                price: parseInt(document.getElementById('pPrice').value),
-                category: document.getElementById('pCategory').value,
-                desc: document.getElementById('pDesc').value,
-                img: document.getElementById('pImg').value
-            };
-
-            if (id) {
-                const index = products.findIndex(p => p.id === parseInt(id));
-                products[index] = newProduct;
-            } else {
-                products.push(newProduct);
-            }
-
-            saveData();
-            closeProductModal();
-            renderAdminProducts();
-            showToast('Товар сохранен');
-        }
-
-        // --- HELPERS ---
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.innerText = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-
-        // Initial update
-        updateCartCount();
-        renderCategoryFilters();
-        renderProducts();
-        lucide.createIcons();
+        saveData(); renderFilters(); renderProducts(); lucide.createIcons();
     </script>
 </body>
 </html>
