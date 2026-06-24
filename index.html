@@ -8,6 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
         :root {
             --bg-color: #0a0a0a;
@@ -207,4 +210,296 @@
             height: 200px;
             object-fit: cover;
             background: #1a1a1a;
+        }
 
+        /* Completed CSS */
+        .product-info {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .product-category {
+            font-size: 0.8rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .product-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-top: auto;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn-buy {
+            flex-grow: 1;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-buy:hover {
+            background: var(--primary-hover);
+        }
+
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 4rem 5%;
+            margin-top: 4rem;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        /* Admin UI Styles */
+        #admin-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .admin-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .admin-input {
+            background: #1a1a1a;
+            border: 1px solid var(--border);
+            padding: 0.8rem;
+            border-radius: 8px;
+            color: white;
+        }
+
+        .admin-btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.4rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <a href="#" class="logo">
+                <i data-lucide="hard-hat"></i>
+                СТРОЙ ДОМ
+            </a>
+            <div class="slogan">качество в каждом кирпиче</div>
+        </div>
+        <div class="nav-actions">
+            <button class="nav-btn" id="admin-toggle">
+                <i data-lucide="settings"></i>
+            </button>
+            <button class="nav-btn">
+                <i data-lucide="shopping-cart"></i>
+                <span class="cart-count">0</span>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero animate-fade">
+            <h1>Все для вашего <span>дома</span></h1>
+            <p>Маркетплейс строительных материалов с доставкой до объекта</p>
+        </section>
+
+        <div id="admin-panel">
+            <h3>Панель управления (Администратор)</h3>
+            <div class="admin-form">
+                <input type="text" id="p-title" class="admin-input" placeholder="Название товара">
+                <input type="text" id="p-price" class="admin-input" placeholder="Цена (напр. 1500 ₽)">
+                <input type="text" id="p-img" class="admin-input" placeholder="URL изображения">
+                <input type="text" id="p-cat" class="admin-input" placeholder="Категория">
+                <button id="add-product" class="admin-btn">Добавить товар</button>
+            </div>
+        </div>
+
+        <div class="categories">
+            <button class="cat-btn active">Все</button>
+            <button class="cat-btn">Кирпич</button>
+            <button class="cat-btn">Бетон</button>
+            <button class="cat-btn">Инструменты</button>
+        </div>
+
+        <div class="products-grid" id="products-container">
+            <!-- Products will be here -->
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 СТРОЙ ДОМ. Все права защищены.</p>
+    </footer>
+
+    <script>
+        // --- КОНФИГУРАЦИЯ FIREBASE ---
+        // Чтобы изменения видели ВСЕ, вам нужно:
+        // 1. Зайти на https://console.firebase.google.com/
+        // 2. Создать проект и добавить "Web App".
+        // 3. Включить "Realtime Database" в меню Build.
+        // 4. В правилах (Rules) базы данных установить: ".read": true, ".write": true (для теста).
+        // 5. Скопируйте ваш config ниже:
+        const firebaseConfig = {
+            apiKey: "ВАШ_API_KEY",
+            authDomain: "ВАШ_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://ВАШ_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "ВАШ_PROJECT_ID",
+            storageBucket: "ВАШ_PROJECT_ID.appspot.com",
+            messagingSenderId: "ВАШ_SENDER_ID",
+            appId: "ВАШ_APP_ID"
+        };
+
+        // Инициализация (если конфиг заполнен)
+        let db = null;
+        if (firebaseConfig.apiKey !== "ВАШ_API_KEY") {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+        }
+
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // App State
+        let products = [];
+        let isAdmin = false;
+
+        // Elements
+        const adminToggle = document.getElementById('admin-toggle');
+        const adminPanel = document.getElementById('admin-panel');
+        const productsContainer = document.getElementById('products-container');
+        const addProductBtn = document.getElementById('add-product');
+
+        // Admin Toggle Logic
+        adminToggle.addEventListener('click', () => {
+            isAdmin = !isAdmin;
+            adminPanel.style.display = isAdmin ? 'block' : 'none';
+            renderProducts();
+        });
+
+        // Load Products from Firebase
+        if (db) {
+            db.ref('products').on('value', (snapshot) => {
+                const data = snapshot.val();
+                products = data ? Object.keys(data).map(key => ({...data[key], fireId: key})) : [];
+                renderProducts();
+            });
+        }
+
+        // Add Product Event Listener
+        addProductBtn.addEventListener('click', () => {
+            const title = document.getElementById('p-title').value;
+            const price = document.getElementById('p-price').value;
+            const img = document.getElementById('p-img').value;
+            const cat = document.getElementById('p-cat').value;
+
+            if (title && price) {
+                const newProduct = {
+                    id: Date.now(),
+                    title,
+                    price,
+                    image: img || 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&q=80&w=400',
+                    category: cat || 'Общее'
+                };
+                
+                if (db) {
+                    db.ref('products').push(newProduct);
+                } else {
+                    // Fallback to local if no Firebase (for preview)
+                    products.push(newProduct);
+                    renderProducts();
+                }
+                clearForm();
+            } else {
+                alert('Пожалуйста, заполните название и цену');
+            }
+        });
+
+        function clearForm() {
+            document.getElementById('p-title').value = '';
+            document.getElementById('p-price').value = '';
+            document.getElementById('p-img').value = '';
+            document.getElementById('p-cat').value = '';
+        }
+
+        function renderProducts() {
+            productsContainer.innerHTML = '';
+            products.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card animate-fade';
+                card.innerHTML = `
+                    <img src="${product.image}" alt="${product.title}" class="product-img">
+                    <div class="product-info">
+                        <span class="product-category">${product.category}</span>
+                        <h3 class="product-title">${product.title}</h3>
+                        <div class="product-price">${product.price}</div>
+                        <div class="product-actions">
+                            <button class="btn-buy">
+                                <i data-lucide="shopping-cart"></i>
+                                В корзину
+                            </button>
+                            ${isAdmin ? `<button class="delete-btn" onclick="deleteProduct('${product.fireId || product.id}')">Удалить</button>` : ''}
+                        </div>
+                    </div>
+                `;
+                productsContainer.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        window.deleteProduct = (id) => {
+            if (db && id.length > 15) { // Firebase IDs are long strings
+                db.ref('products/' + id).remove();
+            } else {
+                products = products.filter(p => p.id != id);
+                renderProducts();
+            }
+        };
+
+        // Initial render
+        renderProducts();
+    </script>
+</body>
+</html>
