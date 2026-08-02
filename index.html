@@ -1,1 +1,544 @@
-https://eu.wps.com/cms/docs/d/cbDaegiFbo0HdPEo?sa=601.1245
+<!DOCTYPE html>
+<html lang="ru" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат для друзей | iMessage Style</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        appleBlue: '#007AFF',
+                        appleGrayBg: '#F5F5F7',
+                        appleBubbleLight: '#E9E9EB',
+                        appleBubbleDark: '#262629',
+                        appleBubbleDarkActive: '#3A3A3C',
+                        appleTextDark: '#F5F5F7'
+                    },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Custom animations for bouncing dots and bubble entrance -->
+    <style>
+        @keyframes bounce-dot {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        .dot-bounce {
+            animation: bounce-dot 1.2s infinite ease-in-out;
+        }
+        .dot-bounce:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .dot-bounce:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        /* Thin, elegant Apple scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 999px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Bubble transitions */
+        .bubble-entry {
+            animation: bubbleSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes bubbleSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+    </style>
+</head>
+<body class="bg-appleGrayBg dark:bg-[#1C1C1E] text-gray-900 dark:text-gray-100 min-h-screen flex items-center justify-center font-sans p-0 sm:p-4 md:p-6 transition-colors duration-300">
+
+    <!-- Container Window -->
+    <div class="w-full h-screen sm:h-[85vh] max-w-5xl bg-white/70 dark:bg-[#2C2C2E]/70 backdrop-blur-xl sm:rounded-3xl border border-gray-200/50 dark:border-gray-700/50 shadow-2xl flex overflow-hidden relative">
+        
+        <!-- Sidebar: Contact List -->
+        <aside id="sidebar" class="w-full md:w-80 flex flex-col border-r border-gray-200/40 dark:border-gray-700/40 bg-white/30 dark:bg-black/15 backdrop-blur-md shrink-0 transition-all duration-300 relative z-20">
+            <!-- Sidebar Header -->
+            <div class="p-4 flex items-center justify-between border-b border-gray-200/30 dark:border-gray-700/30">
+                <div class="flex items-center gap-2">
+                    <h1 class="text-xl font-bold tracking-tight">Сообщения</h1>
+                    <span class="bg-appleBlue text-white text-[11px] font-semibold px-2 py-0.5 rounded-full" id="unread-total-badge">1</span>
+                </div>
+                <!-- Control/Theme Button -->
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200/50 dark:hover:bg-gray-800/50 text-gray-600 dark:text-gray-300 transition-colors" title="Переключить тему">
+                    <!-- Light theme icon (sun) -->
+                    <svg id="sun-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 9H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14 12a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <!-- Dark theme icon (moon) -->
+                    <svg id="moon-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Search Field -->
+            <div class="px-4 py-2">
+                <div class="relative flex items-center bg-[#E3E3E8] dark:bg-[#1C1C1E] rounded-lg px-2.5 py-1.5 text-gray-500 dark:text-gray-400">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input type="text" id="search-input" placeholder="Поиск" class="bg-transparent border-none text-sm w-full focus:outline-none text-gray-800 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400">
+                </div>
+            </div>
+
+            <!-- Contacts Container -->
+            <div class="flex-1 overflow-y-auto" id="contacts-list">
+                <!-- Contacts rendered dynamically by JS -->
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main id="chat-area" class="flex-1 flex flex-col bg-white/40 dark:bg-[#1C1C1E]/40 backdrop-blur-md relative z-10">
+            
+            <!-- Chat Header -->
+            <div class="h-16 border-b border-gray-200/30 dark:border-gray-700/30 flex items-center justify-between px-4 sm:px-6 z-20 shrink-0">
+                <!-- Back arrow (visible on mobile only) -->
+                <button id="back-btn" class="md:hidden mr-2 p-1.5 rounded-full hover:bg-gray-200/50 dark:hover:bg-gray-800/50 text-appleBlue transition-colors flex items-center gap-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    <span class="text-sm font-medium">Чаты</span>
+                </button>
+
+                <!-- Active Friend Info -->
+                <div class="flex items-center gap-3 mr-auto">
+                    <!-- Avatar with status ring -->
+                    <div class="relative w-10 h-10">
+                        <img id="active-avatar" class="w-full h-full rounded-full object-cover border border-gray-200 dark:border-gray-700" src="" alt="">
+                        <span id="active-status-dot" class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-[#2C2C2E] rounded-full"></span>
+                    </div>
+                    <div>
+                        <h2 id="active-name" class="font-semibold text-base leading-tight"></h2>
+                        <span id="active-status-text" class="text-xs text-gray-500 dark:text-gray-400 font-normal">В сети</span>
+                    </div>
+                </div>
+
+                <!-- Right header actions (Facetime & Audio call aesthetics) -->
+                <div class="flex items-center gap-2">
+                    <button class="p-2 rounded-full hover:bg-gray-200/50 dark:hover:bg-gray-800/50 text-appleBlue transition-colors" title="Аудиовызов">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                        </svg>
+                    </button>
+                    <button class="p-2 rounded-full hover:bg-gray-200/50 dark:hover:bg-gray-800/50 text-appleBlue transition-colors" title="Видеовызов">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Messages Area -->
+            <div id="messages-container" class="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-4 flex flex-col justify-end min-h-0 bg-gray-50/20 dark:bg-black/5">
+                <!-- Date separator / Welcome message -->
+                <div class="text-center my-2 text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Сегодня</div>
+                <!-- Dynamic messages go here -->
+                <div id="messages-list" class="space-y-3 flex flex-col justify-end"></div>
+                <!-- Typing bubble dynamic slot -->
+                <div id="typing-indicator-slot" class="hidden bubble-entry self-start">
+                    <div class="flex items-center gap-1.5 px-4 py-3 bg-appleBubbleLight dark:bg-[#262629] rounded-2xl rounded-bl-sm shadow-sm">
+                        <div class="w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full dot-bounce"></div>
+                        <div class="w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full dot-bounce"></div>
+                        <div class="w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full dot-bounce"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message Input Area -->
+            <div class="p-4 bg-white/30 dark:bg-[#1C1C1E]/30 border-t border-gray-200/20 dark:border-gray-700/20 shrink-0">
+                <form id="message-form" class="flex items-center gap-2">
+                    <!-- Text Area Capsule -->
+                    <div class="flex-1 bg-white dark:bg-[#2C2C2E] border border-gray-200 dark:border-gray-700 rounded-full px-4 py-2 flex items-center shadow-sm focus-within:ring-2 focus-within:ring-appleBlue/50 focus-within:border-appleBlue transition-all">
+                        <input type="text" id="message-input" autocomplete="off" placeholder="iMessage" class="flex-1 bg-transparent border-none text-[15px] focus:outline-none placeholder-gray-400 dark:placeholder-gray-500 text-gray-800 dark:text-gray-100 py-0.5">
+                    </div>
+                    <!-- Apple style Blue circle send button -->
+                    <button type="submit" id="send-btn" class="w-9 h-9 bg-appleBlue hover:opacity-90 active:scale-95 text-white rounded-full flex items-center justify-center shadow-md transition-all shrink-0">
+                        <svg class="w-5 h-5 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19V5m-7 7l7-7 7 7"></path>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- 1. MOCK DATA & APP STATE ---
+        const FRIENDS_DATA = {
+            alexey: {
+                id: 'alexey',
+                name: 'Алексей',
+                status: 'online', // online, offline
+                statusText: 'В сети',
+                avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80', // Beautiful portrait
+                messages: [
+                    { id: 1, sender: 'friend', text: 'Привет! Как продвигается разработка чата для друзей?', time: '14:20' },
+                    { id: 2, sender: 'me', text: 'Привет, Лёш! Почти готово. Настраиваю стилизацию под Apple UI.', time: '14:21' },
+                    { id: 3, sender: 'friend', text: 'Круто! Обязательно добавь поддержку темной темы и плавную прокрутку.', time: '14:22' }
+                ],
+                // Customized replies for Alexei
+                responses: [
+                    "Ого, это выглядит потрясающе! Эффект размытия просто огонь.",
+                    "Слушай, а мы можем добавить туда аудиосообщения в будущем?",
+                    "Проверил на айфоне — интерфейс реально как родной iMessage!",
+                    "Код просто супер! Ты настоящий мастер чистого JavaScript.",
+                    "Давай созвонимся вечером, обсудим новые идеи по дизайну?"
+                ]
+            },
+            maria: {
+                id: 'maria',
+                name: 'Мария',
+                status: 'online',
+                statusText: 'В сети',
+                avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
+                messages: [
+                    { id: 1, sender: 'friend', text: 'Привет! Ты видела новый шрифт, который мы выбрали для заголовков?', time: '11:05' },
+                    { id: 2, sender: 'me', text: 'Привет, Маш! Да, SF Pro смотрится потрясающе на светлом фоне.', time: '11:08' }
+                ],
+                responses: [
+                    "Дизайн шикарный! Обожаю эти аккуратные скругления у баблов.",
+                    "А синий цвет (#007AFF) прямо точно как в оригинальной iOS!",
+                    "Давай добавим чуть больше отступов в боковой панели, чтобы было больше воздуха.",
+                    "Попробовала темную тему — выглядит супер уютно, особенно ночью.",
+                    "Ты гений! Напиши мне, когда закончишь верстку."
+                ]
+            },
+            dmitry: {
+                id: 'dmitry',
+                name: 'Дмитрий',
+                status: 'offline',
+                statusText: 'был в сети 15 мин. назад',
+                avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+                messages: [
+                    { id: 1, sender: 'friend', text: 'Привет! На выходных планируем покататься на велосипедах за городом. Ты с нами?', time: 'Вчера' },
+                    { id: 2, sender: 'me', text: 'Привет! Отличная идея, я обязательно поеду.', time: 'Вчера' }
+                ],
+                responses: [
+                    "Отлично, тогда договорились! Сбор в субботу в 9:00 у парка.",
+                    "Я возьму с собой термос с чаем и пару бутербродов.",
+                    "Прогноз погоды обещает тепло и солнце, так что будет супер.",
+                    "Напишу ближе к вечеру пятницы, чтобы сверить часы.",
+                    "Супер! Рад, что ты в деле."
+                ]
+            }
+        };
+
+        let currentActiveId = 'alexey';
+        let searchQuery = '';
+
+        // --- 2. DOM ELEMENTS ---
+        const contactsList = document.getElementById('contacts-list');
+        const messagesContainer = document.getElementById('messages-container');
+        const messagesList = document.getElementById('messages-list');
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+        const activeAvatar = document.getElementById('active-avatar');
+        const activeName = document.getElementById('active-name');
+        const activeStatusText = document.getElementById('active-status-text');
+        const activeStatusDot = document.getElementById('active-status-dot');
+        const typingIndicatorSlot = document.getElementById('typing-indicator-slot');
+        const searchInput = document.getElementById('search-input');
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const sunIcon = document.getElementById('sun-icon');
+        const moonIcon = document.getElementById('moon-icon');
+        const sidebar = document.getElementById('sidebar');
+        const chatArea = document.getElementById('chat-area');
+        const backBtn = document.getElementById('back-btn');
+        const unreadBadge = document.getElementById('unread-total-badge');
+
+        // --- 3. THEME MANAGEMENT ---
+        function initTheme() {
+            // Check localStorage or system preferences
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            }
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.theme = 'light';
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.theme = 'dark';
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+        });
+
+        // --- 4. RENDER CONTACTS & MESSAGE LOGIC ---
+        function renderContacts() {
+            contactsList.innerHTML = '';
+            let unreadCount = 0;
+
+            Object.values(FRIENDS_DATA).forEach(friend => {
+                // Filter by search query if present
+                if (searchQuery && !friend.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+                    return;
+                }
+
+                const lastMsg = friend.messages[friend.messages.length - 1];
+                const lastMsgText = lastMsg ? (lastMsg.sender === 'me' ? `Вы: ${lastMsg.text}` : lastMsg.text) : 'Нет сообщений';
+                const lastMsgTime = lastMsg ? lastMsg.time : '';
+                const isActive = friend.id === currentActiveId;
+
+                const contactItem = document.createElement('div');
+                contactItem.className = `p-3.5 mx-2 my-1 rounded-xl cursor-pointer flex items-center gap-3 transition-all duration-200 select-none ${
+                    isActive 
+                        ? 'bg-appleBlue text-white shadow-md' 
+                        : 'hover:bg-gray-100/60 dark:hover:bg-[#3A3A3C]/50 text-gray-900 dark:text-gray-100'
+                }`;
+
+                // Unread mockup flag (for Dmitry if we haven't read or similar)
+                const isUnread = friend.id === 'maria' && friend.messages.length > 2; // Just static logic to show an unread dot
+
+                contactItem.innerHTML = `
+                    <div class="relative w-12 h-12 shrink-0">
+                        <img class="w-full h-full rounded-full object-cover border border-gray-200/50 dark:border-gray-700/50" src="${friend.avatar}" alt="${friend.name}">
+                        ${friend.status === 'online' 
+                            ? `<span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 ${isActive ? 'border-appleBlue' : 'border-white dark:border-[#2C2C2E]'} rounded-full"></span>`
+                            : ''
+                        }
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-semibold text-sm truncate leading-tight">${friend.name}</h3>
+                            <span class="text-[11px] ${isActive ? 'text-blue-100' : 'text-gray-400 dark:text-gray-500'} font-medium shrink-0 ml-1">${lastMsgTime}</span>
+                        </div>
+                        <p class="text-[13px] ${isActive ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'} truncate mt-0.5">${lastMsgText}</p>
+                    </div>
+                `;
+
+                contactItem.addEventListener('click', () => {
+                    selectFriend(friend.id);
+                });
+
+                contactsList.appendChild(contactItem);
+            });
+
+            // Keep the static notification count synced for aesthetics
+            unreadBadge.innerText = '1';
+        }
+
+        function selectFriend(friendId) {
+            currentActiveId = friendId;
+            
+            // Switch responsive view on mobile (show chat, hide sidebar)
+            sidebar.classList.add('hidden');
+            sidebar.classList.remove('w-full');
+            sidebar.classList.add('md:flex');
+            chatArea.classList.remove('hidden');
+            chatArea.classList.add('flex');
+
+            const friend = FRIENDS_DATA[friendId];
+            activeAvatar.src = friend.avatar;
+            activeName.innerText = friend.name;
+            activeStatusText.innerText = friend.statusText;
+            
+            if (friend.status === 'online') {
+                activeStatusDot.classList.remove('bg-gray-400');
+                activeStatusDot.classList.add('bg-green-500');
+            } else {
+                activeStatusDot.classList.remove('bg-green-500');
+                activeStatusDot.classList.add('bg-gray-400');
+            }
+
+            // Render friend's messages
+            renderMessages();
+            renderContacts();
+        }
+
+        function renderMessages() {
+            messagesList.innerHTML = '';
+            const friend = FRIENDS_DATA[currentActiveId];
+
+            friend.messages.forEach(msg => {
+                const messageWrapper = document.createElement('div');
+                
+                if (msg.sender === 'me') {
+                    // My messages (Apple Blue)
+                    messageWrapper.className = 'bubble-entry flex flex-col items-end space-y-0.5';
+                    messageWrapper.innerHTML = `
+                        <div class="bg-appleBlue text-white px-4 py-2 rounded-2xl rounded-br-sm max-w-[75%] md:max-w-[70%] text-[15px] leading-snug shadow-sm select-text">
+                            ${msg.text}
+                        </div>
+                        <span class="text-[10px] text-gray-400 dark:text-gray-500 font-medium px-1">${msg.time}</span>
+                    `;
+                } else {
+                    // Friend's messages (Light/Dark grey bubble)
+                    messageWrapper.className = 'bubble-entry flex flex-col items-start space-y-0.5';
+                    messageWrapper.innerHTML = `
+                        <div class="bg-appleBubbleLight dark:bg-appleBubbleDark text-gray-900 dark:text-appleTextDark px-4 py-2 rounded-2xl rounded-bl-sm max-w-[75%] md:max-w-[70%] text-[15px] leading-snug shadow-sm select-text">
+                            ${msg.text}
+                        </div>
+                        <span class="text-[10px] text-gray-400 dark:text-gray-500 font-medium px-1">${msg.time}</span>
+                    `;
+                }
+
+                messagesList.appendChild(messageWrapper);
+            });
+
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            // Smoothly scrolls to the bottom of the container
+            setTimeout(() => {
+                messagesContainer.scrollTo({
+                    top: messagesContainer.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 30);
+        }
+
+        // --- 5. INTERACTIVE EVENTS & MOCK RESPONSES ---
+        messageForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = messageInput.value.trim();
+            if (!text) return;
+
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            // Add user's message
+            const currentFriend = FRIENDS_DATA[currentActiveId];
+            currentFriend.messages.push({
+                id: Date.now(),
+                sender: 'me',
+                text: text,
+                time: timeStr
+            });
+
+            messageInput.value = '';
+            renderMessages();
+            renderContacts();
+
+            // Trigger Mock Friend AI Reply after 1-2 seconds
+            triggerFriendReply(currentFriend);
+        });
+
+        function triggerFriendReply(friend) {
+            // Change top status header to "Печатает..."
+            const originalStatusText = friend.statusText;
+            
+            setTimeout(() => {
+                // If the user hasn't switched to another friend, update status text to Typing...
+                if (currentActiveId === friend.id) {
+                    activeStatusText.innerText = 'Печатает...';
+                    activeStatusText.classList.add('text-appleBlue', 'dark:text-appleBlue');
+                    // Show bubble typing indicator
+                    typingIndicatorSlot.classList.remove('hidden');
+                    scrollToBottom();
+                }
+            }, 500);
+
+            // Complete reply delay
+            const delay = 1000 + Math.random() * 1000; // 1-2 seconds
+            setTimeout(() => {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                // Select a realistic response
+                const responseIndex = Math.floor(Math.random() * friend.responses.length);
+                const responseText = friend.responses[responseIndex];
+
+                friend.messages.push({
+                    id: Date.now() + 1,
+                    sender: 'friend',
+                    text: responseText,
+                    time: timeStr
+                });
+
+                // Restore status text & hide typing dot bubble
+                if (currentActiveId === friend.id) {
+                    activeStatusText.innerText = originalStatusText;
+                    activeStatusText.classList.remove('text-appleBlue', 'dark:text-appleBlue');
+                    typingIndicatorSlot.classList.add('hidden');
+                    renderMessages();
+                }
+                
+                renderContacts();
+            }, delay);
+        }
+
+        // Search Input filter
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            renderContacts();
+        });
+
+        // Mobile responsive: Back button clicked
+        backBtn.addEventListener('click', () => {
+            sidebar.classList.remove('hidden');
+            sidebar.classList.add('w-full');
+            chatArea.classList.add('hidden');
+            chatArea.classList.remove('flex');
+        });
+
+        // Initialize App
+        initTheme();
+        selectFriend('alexey');
+
+        // Handle initial screen resize & responsiveness setup
+        function handleResize() {
+            if (window.innerWidth >= 768) {
+                // Desktop mode: make sure both sidebar and chat area are visible
+                sidebar.classList.remove('hidden', 'w-full');
+                sidebar.classList.add('md:flex');
+                chatArea.classList.remove('hidden');
+                chatArea.classList.add('flex');
+            } else {
+                // Mobile mode: if chat is active, hide sidebar. Otherwise hide chat.
+                // Start with sidebar visible by default.
+                if (sidebar.classList.contains('md:flex') && !sidebar.classList.contains('hidden') && !chatArea.classList.contains('hidden')) {
+                    chatArea.classList.add('hidden');
+                }
+            }
+        }
+        window.addEventListener('resize', handleResize);
+        handleResize(); // Initial check
+
+    </script>
+</body>
+</html>
