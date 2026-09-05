@@ -121,6 +121,7 @@
         .cell-readonly {
             font-size: 17px;
             color: var(--secondary-text);
+            font-weight: 500;
         }
 
         .results-grid {
@@ -200,6 +201,13 @@
             </div>
         </div>
         <div class="ios-cell">
+            <span class="cell-label">Работа (за 1 сетку)</span>
+            <div class="cell-value-container">
+                <input type="number" id="laborCost" class="cell-input" value="10" step="1" oninput="calculate()">
+                <span class="cell-unit">₽</span>
+            </div>
+        </div>
+        <div class="ios-cell">
             <span class="cell-label">Итого себестоимость</span>
             <span class="cell-readonly" id="totalCost">0 ₽</span>
         </div>
@@ -242,18 +250,23 @@
             const costPerKg = parseFloat(document.getElementById('costPerKg').value) || 0;
             const weight = parseFloat(document.getElementById('weight').value) || 0;
             const packCost = parseFloat(document.getElementById('packCost').value) || 0;
+            const laborCost = parseFloat(document.getElementById('laborCost').value) || 0;
             const wholesaleMarkup = parseFloat(document.getElementById('wholesaleMarkup').value) || 0;
             const retailMarkup = parseFloat(document.getElementById('retailMarkup').value) || 0;
 
+            // Расчет себестоимости: (Дерево * Вес) + Сетка + Работа сотрудника
             const woodCost = costPerKg * weight;
-            const totalCost = woodCost + packCost;
+            const totalCost = woodCost + packCost + laborCost;
 
+            // Расчет цен продажи
             const wholesalePrice = totalCost * (1 + wholesaleMarkup / 100);
             const retailPrice = totalCost * (1 + retailMarkup / 100);
 
+            // Чистая прибыль (Цена продажи минус себестоимость)
             const wholesaleProfit = wholesalePrice - totalCost;
             const retailProfit = retailPrice - totalCost;
 
+            // Вывод данных на экран
             document.getElementById('totalCost').innerText = totalCost.toFixed(2) + ' ₽';
             document.getElementById('wholesalePrice').innerText = wholesalePrice.toFixed(0) + ' ₽';
             document.getElementById('retailPrice').innerText = retailPrice.toFixed(0) + ' ₽';
@@ -261,6 +274,7 @@
             document.getElementById('wholesaleProfit').innerText = 'Прибыль: ' + wholesaleProfit.toFixed(1) + ' ₽';
             document.getElementById('retailProfit').innerText = 'Прибыль: ' + retailProfit.toFixed(1) + ' ₽';
         }
+        // Запуск первоначального расчета при открытии страницы
         calculate();
     </script>
 </body>
